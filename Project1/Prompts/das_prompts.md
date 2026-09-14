@@ -1,0 +1,1 @@
+1. Generate a base GO program that utilizes MongoDB, using Docker. (Gemini 3.1 Pro)
