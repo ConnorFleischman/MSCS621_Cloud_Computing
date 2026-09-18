@@ -1,4 +1,4 @@
-### Basic Commands (Run from the `TimeLore` folder)
+### Basic Commands (Run from the `Project1` folder)
 
 #### 1. Start the Containers
 
