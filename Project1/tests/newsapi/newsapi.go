@@ -11,18 +11,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"go-mongo-docker/models"
 )
 
 // Article represents one NewsAPI response item.
-type Article struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	URL         string `json:"url"`
-	Source      struct {
-		Name string `json:"name"`
-	} `json:"source"`
-	PublishedAt string `json:"publishedAt"`
-}
+type Article = models.Article
 
 // Request defines the query parameters used for a NewsAPI call.
 type Request struct {
@@ -69,20 +63,14 @@ func FetchArticles(req Request) ([]Article, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		var apiErr struct {
-			Message string `json:"message"`
-		}
+		var apiErr models.NewsAPIResponse
 		if err := json.NewDecoder(resp.Body).Decode(&apiErr); err == nil && apiErr.Message != "" {
 			return nil, fmt.Errorf("NewsAPI request failed: %s (%s)", resp.Status, apiErr.Message)
 		}
 		return nil, fmt.Errorf("NewsAPI request failed: %s", resp.Status)
 	}
 
-	var payload struct {
-		Status       string    `json:"status"`
-		TotalResults int       `json:"totalResults"`
-		Articles     []Article `json:"articles"`
-	}
+	var payload models.NewsAPIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, fmt.Errorf("decode response failed: %w", err)
 	}
