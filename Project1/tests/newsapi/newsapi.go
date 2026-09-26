@@ -109,6 +109,7 @@ func SaveArticles(dir string, articles []Article) error {
 		return err
 	}
 
+	// Write each article to a separate JSON file
 	for i, article := range articles {
 		data, err := json.MarshalIndent(article, "", "  ")
 		if err != nil {
@@ -120,6 +121,7 @@ func SaveArticles(dir string, articles []Article) error {
 		}
 	}
 
+	// Write all articles to a single JSON file
 	allData, err := json.MarshalIndent(articles, "", "  ")
 	if err != nil {
 		return err

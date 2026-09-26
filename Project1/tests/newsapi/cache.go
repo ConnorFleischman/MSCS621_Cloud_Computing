@@ -11,6 +11,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var cacheMu sync.Mutex
@@ -22,17 +25,20 @@ type articleCache struct {
 
 // FetchCachedArticles reads the cache before fetching missing date coverage or article counts.
 func FetchCachedArticles(dir string, req Request) ([]Article, error) {
+	if uri := os.Getenv("MONGO_URI"); uri != "" {
+		return fetchMongoArticles(uri, req)
+	}
 	return fetchCachedArticles(dir, req, time.Now().UTC(), FetchArticles)
 }
 
 // fetchCachedArticles serializes cache updates and allows deterministic, offline verification.
-func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error)) ([]Article, error) {
+func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*mongo.Database) ([]Article, error) {
 	// Lock to ensure thread-safe access to the cache
 	cacheMu.Lock()
 	defer cacheMu.Unlock()
-	
+
 	// Normalize request parameters
-	req.Topic, req.Country = strings.TrimSpace(req.Topic), strings.ToLower(strings.TrimSpace(req.Country))
+	req.Topic, req.Country = strings.ToLower(strings.Join(strings.Fields(req.Topic), " ")), strings.ToLower(strings.TrimSpace(req.Country))
 	if req.Country == "" {
 		req.Country = "us"
 	}
@@ -44,11 +50,17 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 	key := sha256.Sum256([]byte(req.Topic + "\x00" + req.Country))
 	path := filepath.Join(dir, fmt.Sprintf("%x.json", key))
 
-	// Read existing cache from file, or initialize a new cache if it doesn't exist
+	// Read existing coverage and articles from the selected cache.
 	var cache articleCache
-	data, err := os.ReadFile(path)
-	if err == nil {
-		err = json.Unmarshal(data, &cache)
+	var err error
+	if len(db) > 0 {
+		cache, err = loadMongoCache(db[0], req, from, to)
+	} else {
+		var data []byte
+		data, err = os.ReadFile(path)
+		if err == nil {
+			err = json.Unmarshal(data, &cache)
+		}
 	}
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
@@ -67,7 +79,7 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 			if err != nil {
 				return nil, err
 			}
-			
+
 			cache.Articles = mergeArticles(cache.Articles, fresh)
 			items = matchingArticles(cache.Articles, from, to)
 			if len(items) >= req.Limit || len(fresh) < query.Limit {
@@ -75,7 +87,7 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 			}
 		}
 
-		// Update cache date range and write back to file
+		// Update coverage after a successful fetch.
 		if cache.From.IsZero() || from.Before(cache.From) || from.After(cache.To) {
 			cache.From = from
 		}
@@ -84,7 +96,10 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 		}
 
 		// Handle edge cases where cache might be empty or have no articles
-		data, err = json.Marshal(cache)
+		if len(db) > 0 {
+			return items[:min(len(items), req.Limit)], saveMongoCache(db[0], req, cache)
+		}
+		data, err := json.Marshal(cache)
 		if err != nil {
 			return nil, err
 		}
@@ -106,17 +121,22 @@ func mergeArticles(cached, fresh []Article) []Article {
 	seen := make(map[string]bool)
 	var merged []Article
 	for _, article := range append(cached, fresh...) {
-		key := article.URL
-		if key == "" {
-			data, _ := json.Marshal(article)
-			key = string(data)
-		}
+		key := articleKey(article)
 		if !seen[key] {
 			merged = append(merged, article)
 			seen[key] = true
 		}
 	}
 	return merged
+}
+
+// articleKey uses URL identity or a content hash stable across BSON timestamp rounding.
+func articleKey(article Article) string {
+	if article.URL != "" {
+		return article.URL
+	}
+	data, _ := bson.Marshal(article)
+	return fmt.Sprintf("content:%x", sha256.Sum256(data))
 }
 
 // matchingArticles selects dated articles within the requested interval, newest first.
@@ -130,6 +150,6 @@ func matchingArticles(articles []Article, from, to time.Time) []Article {
 	}
 	// Sort articles by publication date in descending order
 	sort.SliceStable(items, func(i, j int) bool { return items[i].PublishedAt.After(*items[j].PublishedAt) })
-	
+
 	return items
 }
