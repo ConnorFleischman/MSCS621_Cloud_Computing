@@ -62,7 +62,7 @@ func loadMongoCache(db *mongo.Database, req Request, from, to time.Time) (articl
 	// Query the coverage collection for a matching interval
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
+
 	// Initialize an empty articleCache
 	var cache articleCache
 	filter := bson.M{"topic": req.Topic, "country": req.Country, "from": bson.M{"$lte": from}, "to": bson.M{"$gte": to}}
@@ -71,9 +71,9 @@ func loadMongoCache(db *mongo.Database, req Request, from, to time.Time) (articl
 		return cache, err
 	}
 
-	// Query the articles collection for articles within the given date range
+	// Read only the requested number of matching articles, newest first.
 	filter = bson.M{"topic": req.Topic, "country": req.Country, "publishedAt": bson.M{"$gte": from, "$lt": to}}
-	cursor, err := db.Collection("articles").Find(ctx, filter)
+	cursor, err := db.Collection("articles").Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "publishedAt", Value: -1}}).SetLimit(int64(max(1, req.Limit))))
 	if err != nil {
 		return cache, err
 	}
@@ -103,10 +103,10 @@ func saveMongoCache(db *mongo.Database, req Request, cache articleCache) error {
 			return err
 		}
 	}
-	
+
 	// Insert/update the coverage document in the coverage collection
 	filter := bson.M{"topic": req.Topic, "country": req.Country, "from": cache.From, "to": cache.To}
 	_, err := db.Collection("coverage").UpdateOne(ctx, filter, bson.M{"$set": filter}, options.Update().SetUpsert(true))
-	
+
 	return err
 }

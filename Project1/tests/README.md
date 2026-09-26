@@ -1,7 +1,7 @@
 # To test, run
 
 ```cmd
-.\bin\newsapi_cli.exe -topic "technology" -days 1 -articles 1 -output .\output\demo
+.\bin\newsapi_cli.exe -topic technology -days 2 -articles 5
 ```
 
 To run unit tests in PowerShell from `Project1`, run

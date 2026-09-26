@@ -47,17 +47,28 @@ func TestMongoCache(t *testing.T) {
 		return []Article{a, a, {Title: "No URL", PublishedAt: &now}}, nil
 	}
 
-	for _, days := range []int{2, 7, 7} {
-		req.Days = days
+	for _, tc := range []struct{ days, limit, want, calls int }{
+		{2, 1, 1, 1}, // Miss fetches articles but caps the response.
+		{2, 2, 2, 1}, // Normalized repeat uses MongoDB without fetching.
+		{2, 1, 1, 1}, // A smaller limit returns only one cached article.
+		{7, 1, 1, 2}, // Insufficient date coverage fetches again.
+		{7, 2, 2, 2}, // Expanded coverage now satisfies the request.
+		{7, 3, 2, 3}, // Insufficient count fetches and returns available articles.
+	} {
+		req.Days, req.Limit = tc.days, tc.limit
 		items, err := fetchCachedArticles("", req, now, fetch, db)
-		if err != nil || len(items) != 2 {
-			t.Fatalf("days=%d: articles=%d, err=%v", days, len(items), err)
+		if err != nil || len(items) != tc.want || calls != tc.calls {
+			t.Fatalf("%+v: articles=%d, calls=%d, err=%v", tc, len(items), calls, err)
 		}
 		req.Topic = "cloud computing"
 	}
 
-	if calls != 2 {
-		t.Fatalf("got %d fetches, want 2", calls)
+	// Exercise the public entry point: a cache hit must succeed without a NewsAPI key.
+	t.Setenv("MONGO_URI", uri)
+	t.Setenv("MONGO_DATABASE", db.Name())
+	req.Limit = 1
+	if items, err := FetchCachedArticles(t.TempDir(), req); err != nil || len(items) != 1 {
+		t.Fatalf("public cache hit: articles=%d, err=%v", len(items), err)
 	}
 
 	filter := bson.M{"topic": "cloud computing", "country": "us"}
@@ -76,7 +87,7 @@ func TestMongoCache(t *testing.T) {
 	if _, err = db.Collection("articles").InsertOne(ctx, stored); !mongo.IsDuplicateKeyError(err) {
 		t.Fatalf("unique index did not reject duplicate: %v", err)
 	}
-	
+
 	from := now.UTC().Truncate(24*time.Hour).AddDate(0, 0, -6)
 	to := now.UTC().Truncate(24*time.Hour).AddDate(0, 0, 1)
 	filter["from"], filter["to"] = from, to
