@@ -1,62 +1,45 @@
-### Basic Commands (Run from the `Project1` folder)
+<!-- Docker commands for building and running the news CLI with MongoDB. -->
+# Docker usage
 
-#### 1. Start the Containers
+Run these commands from `Project1`. Put your NewsAPI key in `tests/.env`:
 
-To start all services:
-
-```bash
-docker compose up
-
+```dotenv
+NEWSAPI_API_KEY=your_api_key_here
 ```
 
-* **Run in the background (detached mode):** If you want to free up your terminal window while the containers run:
-```bash
-docker compose up -d
+Compose loads that file at runtime and sets `MONGO_URI` to the `mongodb` service. The image does not include `.env` files. `MONGO_DATABASE` defaults to `news`.
 
+Build the CLI and search (MongoDB starts automatically and must become healthy first):
+
+```powershell
+docker compose build go-app
+docker compose run --rm go-app -topic technology -days 2 -articles 5
 ```
 
+Repeat the second command for another search. MongoDB persists cached articles in its named volume. The CLI exits after each search; this is expected.
 
+To start both services and run the CLI with its default search:
 
-#### 2. Rebuild and Start (When dependencies or Dockerfiles change)
-
-If you edit `package.json`, `requirements.txt`, or any `Dockerfile`, rebuild the images before launching:
-
-```bash
+```powershell
 docker compose up --build
-
 ```
 
-#### 3. Stop the Containers
+Inspect CLI options, service status, or database logs:
 
-* If running in the foreground: Press `Ctrl + C`.
-* If running in detached mode (or in another terminal tab inside `/TimeLore`):
-```bash
-docker compose down
-
-```
-
-
-
----
-
-### Useful Commands for Terminal Development
-
-* **View Logs:** To watch logs from all containers in real time:
-```bash
-docker compose logs -f
-
-```
-
-
-* **View Logs for a Specific Service:** (e.g., just the FastAPI backend):
-```bash
-docker compose logs -f backend
-
-```
-
-
-* **Check Status:** See which containers are running and their mapped ports:
-```bash
+```powershell
+docker compose run --rm --no-deps go-app -help
 docker compose ps
+docker compose logs mongodb
+```
 
+Stop the services while retaining cached articles:
+
+```powershell
+docker compose down
+```
+
+For an x64 submission image:
+
+```powershell
+docker buildx build --platform linux/amd64 --load -t project1-news .
 ```
