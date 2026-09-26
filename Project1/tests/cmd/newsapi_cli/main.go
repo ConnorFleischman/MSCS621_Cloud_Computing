@@ -10,6 +10,7 @@ import (
 	"go-mongo-docker/tests/newsapi"
 )
 
+// main searches cached news, fetching additional results when required.
 func main() {
 	if err := newsapi.LoadEnvFile(".env"); err != nil {
 		log.Printf("warning: could not load .env: %v", err)
@@ -17,10 +18,11 @@ func main() {
 
 	query := flag.String("q", "", "search keyword/topic (legacy alias)")
 	topic := flag.String("topic", "technology", "topic or keyword to search")
-	country := flag.String("country", "us", "country code")
+	country := flag.String("country", "us", "country code for headlines when topic is empty")
 	days := flag.Int("days", 1, "number of days to look back, including today")
 	articles := flag.Int("articles", 1, "number of articles to request")
 	outputDir := flag.String("output", "", "folder to save article JSON documents")
+	cacheDir := flag.String("cache", ".newsapi-cache", "folder for cached queries")
 	flag.Parse()
 
 	if *query != "" && *topic == "technology" {
@@ -34,19 +36,16 @@ func main() {
 	}
 
 	apiKey := strings.TrimSpace(os.Getenv("NEWSAPI_API_KEY"))
-	if apiKey == "" {
-		log.Fatal("NEWSAPI_API_KEY is not set. Add it to .env or export it in your shell before running this command.")
-	}
 
 	request := newsapi.Request{
-		APIKey: apiKey,
-		Topic:  *topic,
+		APIKey:  apiKey,
+		Topic:   *topic,
 		Country: *country,
-		Days:   *days,
-		Limit:  *articles,
+		Days:    *days,
+		Limit:   *articles,
 	}
 
-	items, err := newsapi.FetchArticles(request)
+	items, err := newsapi.FetchCachedArticles(*cacheDir, request)
 	if err != nil {
 		log.Fatal(err)
 	}
