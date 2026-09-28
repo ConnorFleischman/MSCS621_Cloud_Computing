@@ -210,7 +210,7 @@ go test ./...
 Docker alternative:
 
 ```bash
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= --entrypoint go go-app test ./...
+docker run --entrypoint go project1:latest test ./...
 ```
 
 Run the tests in verbose mode to see live output:
@@ -222,7 +222,7 @@ go test ./... -v
 Docker alternative:
 
 ```bash
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= --entrypoint go go-app test ./... -v
+docker run --entrypoint go project1:latest test ./... -v
 ```
 
 Run only the cached API tests:
@@ -234,7 +234,7 @@ go test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
 Docker alternative:
 
 ```bash
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= --entrypoint go go-app test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
+docker run --entrypoint go project1:latest test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
 ```
 
 There is currently no `TestMongoCache` integration test in `tests/`.
@@ -276,7 +276,7 @@ docker compose -p project1 ps
 go test ./...
 
 # Docker alternative to go test
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= --entrypoint go go-app test ./...
+docker run --entrypoint go project1:latest test ./...
 ```
 
 ## Submission notes
