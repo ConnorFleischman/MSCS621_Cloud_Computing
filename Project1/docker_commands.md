@@ -9,12 +9,12 @@ NEWSAPI_API_KEY=your_api_key_here
 
 Compose loads that file at runtime and sets `MONGO_URI` to the `mongodb` service. `MONGO_DATABASE` defaults to `news`. The current Dockerfile copies the project directory, including `.env` if present; `.gitignore` does not exclude files from Docker builds.
 
-The module requires Go 1.25.0 or newer, but the Dockerfile selects Go 1.22 with `GOTOOLCHAIN=local`, which disables automatic upgrades. The build command below uses a [Docker build-context override](https://docs.docker.com/reference/cli/docker/buildx/build/#additional-build-contexts---build-context) to select Go 1.25 without editing the Dockerfile. It loads the result as `project1-go-app`, the image name used by Compose with `-p project1`. Use this build command again after code changes; ordinary `docker compose build` or `up --build` would use Go 1.22 again.
+The module requires Go 1.25.0 or newer, and the Dockerfile now uses the matching Go 1.25 base image so ordinary Docker builds work without a custom override.
 
 Build the CLI and search (MongoDB starts automatically and must become healthy first):
 
 ```powershell
-docker buildx build --load --build-context golang:1.22-alpine=docker-image://golang:1.25-alpine -f dockerfile -t project1-go-app .
+docker build -t project1-go-app .
 docker compose -p project1 run --rm go-app -topic technology -days 2 -articles 5
 ```
 
@@ -65,7 +65,7 @@ docker compose -p project1 down
 For an x64 submission image:
 
 ```powershell
-docker buildx build --platform linux/amd64 --load --build-context golang:1.22-alpine=docker-image://golang:1.25-alpine -f dockerfile -t project1-news .
+docker buildx build --platform linux/amd64 --load -f dockerfile -t project1-news .
 ```
 
 This tags a separate submission image; the Compose commands above use `project1-go-app`.
