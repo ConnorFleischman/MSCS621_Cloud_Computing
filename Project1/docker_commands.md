@@ -1,7 +1,7 @@
 <!-- Docker commands for building and running the news CLI with MongoDB. -->
 # Docker usage
 
-Run these commands from `Project1`. Put your NewsAPI key in `tests/.env`:
+Run these commands from `Project1`. Put your NewsAPI key in `.env`:
 
 ```dotenv
 NEWSAPI_API_KEY=your_api_key_here

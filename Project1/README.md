@@ -131,11 +131,25 @@ You can also inspect logs:
 docker compose logs -f mongodb
 ```
 
-## 3) Run the app locally
+## 3) Run the app locally or with Docker
+Run all commands below from `Project1`. Before using the Docker alternatives, build the app image (repeat after code changes):
+
+```bash
+docker compose build go-app
+```
+
+Compose loads `Project1/.env`, sets `MONGO_URI` to the `mongodb` service, and starts MongoDB automatically when running the app. Each `run --rm` command removes the app container after it exits.
+
 With Mongo configured and your `NEWSAPI_API_KEY` in `.env`, run:
 
 ```bash
 go run . -topic "cloud computing" -days 7 -articles 5
+```
+
+Docker alternative:
+
+```bash
+docker compose run --rm go-app -topic "cloud computing" -days 7 -articles 5
 ```
 
 Common flags:
@@ -146,6 +160,16 @@ go run . -q "artificial intelligence" -days 3 -articles 10
 go run . -topic "technology" -country us -days 7 -articles 5 -output ./output
 
 go run . -topic "health" -cache .newsapi-cache
+```
+
+Docker alternatives for the same searches (the volume mounts keep output and file cache on your machine):
+
+```bash
+docker compose run --rm go-app -q "artificial intelligence" -days 3 -articles 10
+
+docker compose run --rm -v "./output:/app/output" go-app -topic "technology" -country us -days 7 -articles 5 -output ./output
+
+docker compose run --rm -v "./.newsapi-cache:/app/.newsapi-cache" go-app -topic "health" -cache .newsapi-cache
 ```
 
 Available options:
@@ -167,10 +191,18 @@ docker compose up --build
 This will build the Go app and run it using the container environment. The app is configured to use the MongoDB service inside Docker by default.
 
 ## 5) Run stored tests
+The Docker alternatives use `--entrypoint go` to run the Go tool included in the image instead of the app. Rebuild the image after changing source code or tests.
+
 Run all Go tests:
 
 ```bash
 go test ./...
+```
+
+Docker alternative:
+
+```bash
+docker compose run --rm --entrypoint go go-app test ./...
 ```
 
 Run the tests in verbose mode to see live output:
@@ -179,16 +211,34 @@ Run the tests in verbose mode to see live output:
 go test ./... -v
 ```
 
+Docker alternative:
+
+```bash
+docker compose run --rm --entrypoint go go-app test ./... -v
+```
+
 Run only the cached API tests:
 
 ```bash
 go test ./tests/newsapi -v
 ```
 
+Docker alternative:
+
+```bash
+docker compose run --rm --entrypoint go go-app test ./tests/newsapi -v
+```
+
 If you want to run the MongoDB integration test, set `MONGO_TEST_URI` in your environment or `.env` before executing:
 
 ```bash
 go test ./tests/newsapi -run TestMongoCache -v
+```
+
+Docker alternative (override the test URI to use the Compose service hostname):
+
+```bash
+docker compose run --rm -e MONGO_TEST_URI=mongodb://admin:secret@mongodb:27017/ --entrypoint go go-app test ./tests/newsapi -run TestMongoCache -v
 ```
 
 ## 6) Custom API queries
@@ -198,10 +248,22 @@ You can run live custom searches directly through the app entrypoint:
 go run . -topic "cybersecurity" -days 14 -articles 3
 ```
 
+Docker alternative:
+
+```bash
+docker compose run --rm go-app -topic "cybersecurity" -days 14 -articles 3
+```
+
 To save the results locally as JSON:
 
 ```bash
 go run . -topic "machine learning" -days 30 -articles 10 -output ./output
+```
+
+Docker alternative (saves JSON in your local `Project1/output` folder):
+
+```bash
+docker compose run --rm -v "./output:/app/output" go-app -topic "machine learning" -days 30 -articles 10 -output ./output
 ```
 
 The app checks the configured cache first and only fetches from NewsAPI when needed.
@@ -214,6 +276,9 @@ docker compose logs -f
 docker compose ps
 
 go test ./...
+
+# Docker alternative to go test
+docker compose run --rm --entrypoint go go-app test ./...
 ```
 
 ## Submission notes
