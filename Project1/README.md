@@ -20,3 +20,6 @@
 
 ## Architecture
 Go, with MongoDB
+
+## Submission
+docker buildx command is for cross-compilation. When submitting project, please submit image for x64 architecture

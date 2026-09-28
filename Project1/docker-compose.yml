@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:latest
@@ -11,15 +9,23 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=secret
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   go-app:
     build: .
     container_name: go-app
+    env_file:
+      - ./tests/.env
     environment:
       # Connect using the mongodb container name rather than localhost
       - MONGO_URI=mongodb://admin:secret@mongodb:27017/
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
 
 volumes:
   mongo-data:
