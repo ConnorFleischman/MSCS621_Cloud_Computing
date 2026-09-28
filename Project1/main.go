@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"go-mongo-docker/newsapi"
 )
@@ -28,9 +29,26 @@ func runApp(args []string) error {
 	articles := fs.Int("articles", 1, "number of articles to request")
 	outputDir := fs.String("output", "", "folder to save article JSON documents")
 	cacheDir := fs.String("cache", ".newsapi-cache", "folder for cached queries")
+	apiTimeout := fs.Duration("api-timeout", 15*time.Second, "timeout for NewsAPI requests")
+	mongoTimeout := fs.Duration("mongo-timeout", 10*time.Second, "timeout for MongoDB cache operations")
 
 	if err := fs.Parse(args); err != nil {
 		return err
+	}
+
+	if val := strings.TrimSpace(os.Getenv("NEWSAPI_TIMEOUT")); val != "" {
+		d, err := time.ParseDuration(val)
+		if err != nil {
+			return fmt.Errorf("invalid NEWSAPI_TIMEOUT %q: %w", val, err)
+		}
+		apiTimeout = &d
+	}
+	if val := strings.TrimSpace(os.Getenv("MONGO_TIMEOUT")); val != "" {
+		d, err := time.ParseDuration(val)
+		if err != nil {
+			return fmt.Errorf("invalid MONGO_TIMEOUT %q: %w", val, err)
+		}
+		mongoTimeout = &d
 	}
 
 	if *query != "" && *topic == "technology" {
@@ -44,11 +62,13 @@ func runApp(args []string) error {
 	}
 
 	request := newsapi.Request{
-		APIKey:  strings.TrimSpace(os.Getenv("NEWSAPI_API_KEY")),
-		Topic:   *topic,
-		Country: *country,
-		Days:    *days,
-		Limit:   *articles,
+		APIKey:       strings.TrimSpace(os.Getenv("NEWSAPI_API_KEY")),
+		Topic:        *topic,
+		Country:      *country,
+		Days:         *days,
+		Limit:        *articles,
+		Timeout:      *apiTimeout,
+		MongoTimeout: *mongoTimeout,
 	}
 
 	items, err := fetchArticles(*cacheDir, request)

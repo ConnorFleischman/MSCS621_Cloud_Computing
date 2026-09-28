@@ -12,7 +12,8 @@ import (
 
 // fetchMongoArticles connects the CLI to MongoDB, using the same coverage checks as the file cache.
 func fetchMongoArticles(uri string, req Request) ([]Article, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	req = NormalizeRequestTimeouts(req)
+	ctx, cancel := context.WithTimeout(context.Background(), req.MongoTimeout)
 	defer cancel()
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -52,7 +53,8 @@ func indexMongoCache(ctx context.Context, db *mongo.Database) error {
 
 // loadMongoCache reads matching articles and a completed interval covering the requested UTC dates.
 func loadMongoCache(db *mongo.Database, req Request, from, to time.Time) (articleCache, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	req = NormalizeRequestTimeouts(req)
+	ctx, cancel := context.WithTimeout(context.Background(), req.MongoTimeout)
 	defer cancel()
 
 	var cache articleCache
@@ -75,7 +77,8 @@ func loadMongoCache(db *mongo.Database, req Request, from, to time.Time) (articl
 
 // saveMongoCache upserts articles before recording coverage; absent URLs use a content hash for identity.
 func saveMongoCache(db *mongo.Database, req Request, cache articleCache) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	req = NormalizeRequestTimeouts(req)
+	ctx, cancel := context.WithTimeout(context.Background(), req.MongoTimeout)
 	defer cancel()
 
 	for _, article := range cache.Articles {
