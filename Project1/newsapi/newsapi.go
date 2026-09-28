@@ -30,12 +30,10 @@ type Request struct {
 
 // FetchArticles searches dated articles by topic, or country headlines when no topic is supplied.
 func FetchArticles(req Request) ([]Article, error) {
-	// Validate API Key
 	if strings.TrimSpace(req.APIKey) == "" {
 		return nil, fmt.Errorf("NEWSAPI_API_KEY is not set")
 	}
 
-	// Validate and catch edge cases
 	if req.Days < 1 {
 		req.Days = 1
 	}
@@ -48,7 +46,6 @@ func FetchArticles(req Request) ([]Article, error) {
 		req.Country = "us"
 	}
 
-	// Create request url with query parameters
 	params := url.Values{}
 	params.Set("apiKey", req.APIKey)
 	params.Set("country", req.Country)
@@ -61,28 +58,24 @@ func FetchArticles(req Request) ([]Article, error) {
 		params.Set("q", strings.TrimSpace(req.Topic))
 	}
 
-	// Calculate date range for the request
 	now := time.Now().UTC()
 	startDate := now.AddDate(0, 0, -(req.Days - 1))
 	params.Set("from", startDate.Format("2006-01-02"))
 	params.Set("to", now.Format(time.RFC3339))
 
-	// Set the endpoint based on whether a topic is provided or not
 	endpoint := "https://newsapi.org/v2/top-headlines?" + params.Encode()
 	if strings.TrimSpace(req.Topic) != "" {
-		params.Del("country") // Only the everything endpoint supports historical date bounds.
+		params.Del("country")
 		params.Set("sortBy", "publishedAt")
 		endpoint = "https://newsapi.org/v2/everything?" + params.Encode()
 	}
 
-	// Catch and handle errors from http req/res
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close() // Ensure response body is closed after reading
+	defer resp.Body.Close()
 
-	// Handle non-200 status codes
 	if resp.StatusCode != http.StatusOK {
 		var apiErr models.NewsAPIResponse
 		if err := json.NewDecoder(resp.Body).Decode(&apiErr); err == nil && apiErr.Message != "" {
@@ -91,9 +84,7 @@ func FetchArticles(req Request) ([]Article, error) {
 		return nil, fmt.Errorf("NewsAPI request failed: %s", resp.Status)
 	}
 
-	// Structure response, and catch errors before returning articles
 	var payload models.NewsAPIResponse
-
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, fmt.Errorf("decode response failed: %w", err)
 	}
@@ -109,7 +100,6 @@ func SaveArticles(dir string, articles []Article) error {
 		return err
 	}
 
-	// Write each article to a separate JSON file
 	for i, article := range articles {
 		data, err := json.MarshalIndent(article, "", "  ")
 		if err != nil {
@@ -121,7 +111,6 @@ func SaveArticles(dir string, articles []Article) error {
 		}
 	}
 
-	// Write all articles to a single JSON file
 	allData, err := json.MarshalIndent(articles, "", "  ")
 	if err != nil {
 		return err

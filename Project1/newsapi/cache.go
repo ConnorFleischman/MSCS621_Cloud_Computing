@@ -1,4 +1,3 @@
-// cache.go persists query coverage and merges additional NewsAPI results without duplicates.
 package newsapi
 
 import (
@@ -19,7 +18,8 @@ import (
 var cacheMu sync.Mutex
 
 type articleCache struct {
-	From, To time.Time
+	From     time.Time
+	To       time.Time
 	Articles []Article
 }
 
@@ -33,24 +33,20 @@ func FetchCachedArticles(dir string, req Request) ([]Article, error) {
 
 // fetchCachedArticles serializes cache updates and allows deterministic, offline verification.
 func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*mongo.Database) ([]Article, error) {
-	// Lock to ensure thread-safe access to the cache
 	cacheMu.Lock()
 	defer cacheMu.Unlock()
 
-	// Normalize request parameters
 	req.Topic, req.Country = strings.ToLower(strings.Join(strings.Fields(req.Topic), " ")), strings.ToLower(strings.TrimSpace(req.Country))
 	if req.Country == "" {
 		req.Country = "us"
 	}
 
-	// Calculate date range for the request
 	req.Days, req.Limit = max(1, req.Days), max(1, req.Limit)
 	to := now.UTC().Truncate(24*time.Hour).AddDate(0, 0, 1)
 	from := to.AddDate(0, 0, -req.Days)
 	key := sha256.Sum256([]byte(req.Topic + "\x00" + req.Country))
 	path := filepath.Join(dir, fmt.Sprintf("%x.json", key))
 
-	// Read existing coverage and articles from the selected cache.
 	var cache articleCache
 	var err error
 	if len(db) > 0 {
@@ -66,11 +62,9 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 		return nil, err
 	}
 
-	// Merge cached articles with fresh fetches, ensuring no duplicates and proper date coverage
 	cache.Articles = mergeArticles(nil, cache.Articles)
 	items := matchingArticles(cache.Articles, from, to)
 
-	// Fetch additional articles if the cache does not cover the requested date range or article count
 	if cache.From.IsZero() || from.Before(cache.From) || to.After(cache.To) || len(items) < req.Limit {
 		for page := 1; ; page++ {
 			query := req
@@ -87,7 +81,6 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 			}
 		}
 
-		// Update coverage after a successful fetch.
 		if cache.From.IsZero() || from.Before(cache.From) || from.After(cache.To) {
 			cache.From = from
 		}
@@ -95,7 +88,6 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 			cache.To = to
 		}
 
-		// Handle edge cases where cache might be empty or have no articles
 		if len(db) > 0 {
 			return items[:min(len(items), req.Limit)], saveMongoCache(db[0], req, cache)
 		}
@@ -141,15 +133,12 @@ func articleKey(article Article) string {
 
 // matchingArticles selects dated articles within the requested interval, newest first.
 func matchingArticles(articles []Article, from, to time.Time) []Article {
-	// Filter articles based on the specified date range
 	items := []Article{}
 	for _, article := range articles {
 		if article.PublishedAt != nil && !article.PublishedAt.Before(from) && article.PublishedAt.Before(to) {
 			items = append(items, article)
 		}
 	}
-	// Sort articles by publication date in descending order
 	sort.SliceStable(items, func(i, j int) bool { return items[i].PublishedAt.After(*items[j].PublishedAt) })
-
 	return items
 }

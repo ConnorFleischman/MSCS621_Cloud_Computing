@@ -6,11 +6,9 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Build the same news CLI used by the Windows executable.
-COPY models/ ./models/
-COPY tests/newsapi/*.go ./tests/newsapi/
-COPY tests/cmd/newsapi_cli/*.go ./tests/cmd/newsapi_cli/
-RUN go build -o newscli ./tests/cmd/newsapi_cli
+# Build the actual project entrypoint, which uses the cache-aware NewsAPI flow.
+COPY . .
+RUN go build -o app .
 
-# Pass container arguments directly to the CLI.
-ENTRYPOINT ["./newscli"]
+# Run the app with environment-provided flags.
+ENTRYPOINT ["./app"]
