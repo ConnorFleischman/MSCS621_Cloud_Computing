@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // fetchMongoArticles connects the CLI to MongoDB, using the same coverage checks as the file cache.
@@ -15,11 +15,11 @@ func fetchMongoArticles(uri string, req Request) ([]Article, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, err
 	}
-	defer client.Disconnect(context.Background())
+	defer client.Disconnect(ctx)
 
 	name := os.Getenv("MONGO_DATABASE")
 	if name == "" {
@@ -87,12 +87,12 @@ func saveMongoCache(db *mongo.Database, req Request, cache articleCache) error {
 			Topic, Country, Key string
 		}{article, req.Topic, req.Country, key}
 
-		if _, err := db.Collection("articles").UpdateOne(ctx, filter, bson.M{"$set": doc}, options.Update().SetUpsert(true)); err != nil {
+		if _, err := db.Collection("articles").UpdateOne(ctx, filter, bson.M{"$set": doc}, options.UpdateOne().SetUpsert(true)); err != nil {
 			return err
 		}
 	}
 
 	filter := bson.M{"topic": req.Topic, "country": req.Country, "from": cache.From, "to": cache.To}
-	_, err := db.Collection("coverage").UpdateOne(ctx, filter, bson.M{"$set": filter}, options.Update().SetUpsert(true))
+	_, err := db.Collection("coverage").UpdateOne(ctx, filter, bson.M{"$set": filter}, options.UpdateOne().SetUpsert(true))
 	return err
 }
