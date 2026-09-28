@@ -29,6 +29,46 @@ This project is a Go-based news search app that fetches stories from NewsAPI, ca
 - Stored tests: `tests/newsapi/`
 - MongoDB container: `docker-compose.yml`
 
+## Concurrency design
+The service is designed to process independent news searches in parallel using goroutines and channels.
+
+- Each request is wrapped in its own goroutine via `newsapi.ProcessRequests(...)`.
+- The function sends successful results over a `results` channel and failures over an `errors` channel.
+- Each goroutine calls the same fetch path (`FetchCachedArticles`) independently, so multiple users can run searches at the same time without blocking each other.
+- The file cache still uses a narrow mutex guard (`cacheMu`) to prevent concurrent writes to the same on-disk cache file.
+- MongoDB and NewsAPI access are isolated per request: each request creates its own timeout-bound context and client connection, which lets Mongo's connection pool and the HTTP client handle concurrency safely.
+
+This pattern supports multiple simultaneous users while preserving predictable cache semantics and avoiding accidental data races between independent searches.
+
+## Invocation method
+Use the request fan-out helper when running more than one independent search:
+
+```go
+requests := []newsapi.Request{
+    {Topic: "cloud computing", Days: 7, Limit: 5},
+    {Topic: "machine learning", Days: 7, Limit: 3},
+    {Topic: "cybersecurity", Days: 3, Limit: 2},
+}
+
+resultsCh, errCh := newsapi.ProcessCachedRequests(".newsapi-cache", requests)
+
+for result := range resultsCh {
+    fmt.Printf("%s -> %d articles\n", result.Request.Topic, len(result.Articles))
+}
+
+for err := range errCh {
+    log.Printf("search failed: %v", err)
+}
+```
+
+For a single CLI query, you can still invoke the app as before:
+
+```bash
+go run . -topic "cloud computing" -days 7 -articles 5
+```
+
+The same fetch path is used in both cases; the concurrency helper simply exposes the per-request goroutine/channel model for multi-user workloads.
+
 ## Prerequisites
 - Go 1.22+
 - Docker Desktop or Docker Engine

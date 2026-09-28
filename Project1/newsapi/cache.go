@@ -23,6 +23,51 @@ type articleCache struct {
 	Articles []Article
 }
 
+// RequestResult carries one request's outcome after a goroutine finishes.
+type RequestResult struct {
+	Request  Request
+	Articles []Article
+	Err      error
+}
+
+// ProcessRequests fans out independent requests to goroutines and returns results/errors over channels.
+func ProcessRequests(requests []Request, fetch func(Request) ([]Article, error)) (<-chan RequestResult, <-chan error) {
+	results := make(chan RequestResult, len(requests))
+	errs := make(chan error, len(requests))
+
+	go func() {
+		var wg sync.WaitGroup
+		wg.Add(len(requests))
+
+		for _, request := range requests {
+			go func(req Request) {
+				defer wg.Done()
+
+				items, err := fetch(req)
+				if err != nil {
+					errs <- err
+					return
+				}
+
+				results <- RequestResult{Request: req, Articles: items}
+			}(request)
+		}
+
+		wg.Wait()
+		close(results)
+		close(errs)
+	}()
+
+	return results, errs
+}
+
+// ProcessCachedRequests is the directory-aware helper for many independent searches using the shared cache logic.
+func ProcessCachedRequests(dir string, requests []Request) (<-chan RequestResult, <-chan error) {
+	return ProcessRequests(requests, func(req Request) ([]Article, error) {
+		return FetchCachedArticles(dir, req)
+	})
+}
+
 // FetchCachedArticles reads the cache before fetching missing date coverage or article counts.
 func FetchCachedArticles(dir string, req Request) ([]Article, error) {
 	if uri := os.Getenv("MONGO_URI"); uri != "" {

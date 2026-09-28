@@ -19,7 +19,7 @@ services:
     build: .
     container_name: go-app
     env_file:
-      - ./tests/.env
+      - ./.env
     environment:
       # Connect using the mongodb container name rather than localhost
       - MONGO_URI=mongodb://admin:secret@mongodb:27017/
