@@ -11,11 +11,13 @@ import (
 	"sync"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"golang.org/x/sync/singleflight"
 )
 
 var cacheMu sync.Mutex
+var cacheMisses singleflight.Group
 
 type articleCache struct {
 	From     time.Time
@@ -78,9 +80,6 @@ func FetchCachedArticles(dir string, req Request) ([]Article, error) {
 
 // fetchCachedArticles serializes cache updates and allows deterministic, offline verification.
 func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*mongo.Database) ([]Article, error) {
-	cacheMu.Lock()
-	defer cacheMu.Unlock()
-
 	req.Topic, req.Country = strings.ToLower(strings.Join(strings.Fields(req.Topic), " ")), strings.ToLower(strings.TrimSpace(req.Country))
 	if req.Country == "" {
 		req.Country = "us"
@@ -89,68 +88,83 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 	req.Days, req.Limit = max(1, req.Days), max(1, req.Limit)
 	to := now.UTC().Truncate(24*time.Hour).AddDate(0, 0, 1)
 	from := to.AddDate(0, 0, -req.Days)
-	key := sha256.Sum256([]byte(req.Topic + "\x00" + req.Country))
-	path := filepath.Join(dir, fmt.Sprintf("%x.json", key))
+	key := sha256.Sum256([]byte(req.Topic + "\x00" + req.Country + "\x00" + from.Format(time.RFC3339) + "\x00" + to.Format(time.RFC3339)))
+	cacheKey := dir + "\x00" + fmt.Sprintf("%x", key)
 
-	var cache articleCache
-	var err error
-	if len(db) > 0 {
-		cache, err = loadMongoCache(db[0], req, from, to)
-	} else {
-		var data []byte
-		data, err = os.ReadFile(path)
-		if err == nil {
-			err = json.Unmarshal(data, &cache)
+	result, err, _ := cacheMisses.Do(cacheKey, func() (interface{}, error) {
+		cacheMu.Lock()
+		defer cacheMu.Unlock()
+
+		path := filepath.Join(dir, fmt.Sprintf("%x.json", key))
+
+		var cache articleCache
+		if len(db) > 0 {
+			var loadErr error
+			cache, loadErr = loadMongoCache(db[0], req, from, to)
+			if loadErr != nil && !os.IsNotExist(loadErr) {
+				return nil, loadErr
+			}
+		} else {
+			var data []byte
+			var readErr error
+			data, readErr = os.ReadFile(path)
+			if readErr == nil {
+				readErr = json.Unmarshal(data, &cache)
+			}
+			if readErr != nil && !os.IsNotExist(readErr) {
+				return nil, readErr
+			}
 		}
-	}
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
 
-	cache.Articles = mergeArticles(nil, cache.Articles)
-	items := matchingArticles(cache.Articles, from, to)
+		cache.Articles = mergeArticles(nil, cache.Articles)
+		items := matchingArticles(cache.Articles, from, to)
 
-	if cache.From.IsZero() || from.Before(cache.From) || to.After(cache.To) || len(items) < req.Limit {
-		for page := 1; ; page++ {
-			query := req
-			query.Page, query.Limit = page, 100
-			fresh, err := fetch(query)
-			if err != nil {
+		if cache.From.IsZero() || from.Before(cache.From) || to.After(cache.To) || len(items) < req.Limit {
+			for page := 1; ; page++ {
+				query := req
+				query.Page, query.Limit = page, 100
+				fresh, fetchErr := fetch(query)
+				if fetchErr != nil {
+					return nil, fetchErr
+				}
+
+				cache.Articles = mergeArticles(cache.Articles, fresh)
+				items = matchingArticles(cache.Articles, from, to)
+				if len(items) >= req.Limit || len(fresh) < query.Limit {
+					break
+				}
+			}
+
+			if cache.From.IsZero() || from.Before(cache.From) || from.After(cache.To) {
+				cache.From = from
+			}
+			if to.After(cache.To) {
+				cache.To = to
+			}
+
+			if len(db) > 0 {
+				return items[:min(len(items), req.Limit)], saveMongoCache(db[0], req, cache)
+			}
+			data, marshalErr := json.Marshal(cache)
+			if marshalErr != nil {
+				return nil, marshalErr
+			}
+
+			if err := os.MkdirAll(dir, 0o755); err != nil {
 				return nil, err
 			}
 
-			cache.Articles = mergeArticles(cache.Articles, fresh)
-			items = matchingArticles(cache.Articles, from, to)
-			if len(items) >= req.Limit || len(fresh) < query.Limit {
-				break
+			if err := os.WriteFile(path, data, 0o644); err != nil {
+				return nil, err
 			}
 		}
 
-		if cache.From.IsZero() || from.Before(cache.From) || from.After(cache.To) {
-			cache.From = from
-		}
-		if to.After(cache.To) {
-			cache.To = to
-		}
-
-		if len(db) > 0 {
-			return items[:min(len(items), req.Limit)], saveMongoCache(db[0], req, cache)
-		}
-		data, err := json.Marshal(cache)
-		if err != nil {
-			return nil, err
-		}
-
-		if err = os.MkdirAll(dir, 0o755); err != nil {
-			return nil, err
-		}
-
-		if err = os.WriteFile(path, data, 0o644); err != nil {
-			return nil, err
-		}
+		return items[:min(len(items), req.Limit)], nil
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	return items[:min(len(items), req.Limit)], nil
+	return result.([]Article), nil
 }
 
 // mergeArticles keeps one article per URL, using full content when a URL is absent.
