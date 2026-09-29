@@ -24,4 +24,9 @@
 - Indicate whether results came from cache or News API.
 - Handle missing fields without broken output. 
 7. (GPT-6 Luna) Reconfigure project to have all unit tests put in the same directory as the file they are testing, and ensure the test itself works with this new configuration
-8. 
+8. Test the complete application flow with MongoDB and a mock News API, acceptance criteria:
+- Test first search, API retrieval, and persistence.
+- Test repeated search from MongoDB.
+- Test expanded date and article-limit requests.
+- Test concurrent searches.
+- Keep production credentials out of tests

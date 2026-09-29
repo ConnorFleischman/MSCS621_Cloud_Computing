@@ -26,7 +26,7 @@ This project is a Go-based news search app that fetches stories from NewsAPI, ca
 - Go app entrypoint: `main.go`
 - Shared models: `models/`
 - Core app logic: `newsapi/`
-- Tests are co-located with the packages they test (`main_test.go`, `newsapi/*_test.go`).
+- Unit tests are co-located with their packages (`main_test.go`, `newsapi/*_test.go`); the full-flow MongoDB integration test is in `tests/`.
 - MongoDB container: `docker-compose.yml`
 
 ## Concurrency design
@@ -108,7 +108,7 @@ MONGO_URI=mongodb://admin:secret@mongodb:27017/
 Notes:
 - `NEWSAPI_API_KEY` is required for live API requests.
 - `MONGO_URI` is used by the app when Mongo cache is enabled.
-- `MONGO_TEST_URI` is not used by the current tests.
+- `MONGO_TEST_URI` is used only by the opt-in MongoDB integration test and should point to a disposable test database server.
 
 ## 2) Start MongoDB with Docker
 From `Project1` (run `cd Project1` first if your terminal is at the repository root):
@@ -237,7 +237,14 @@ Docker alternative:
 docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./newsapi -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v -count=1
 ```
 
-There is currently no `TestMongoCache` integration test in `newsapi/`.
+The full-flow integration test is kept separate from the unit tests because it requires a running MongoDB server.
+
+Run the full application-flow integration test against a disposable MongoDB instance. It uses a mock NewsAPI server and does not read `.env`, `MONGO_URI`, or production API credentials. Set `MONGO_TEST_URI` to the test server URI first; when running the test container on the Compose network, use `mongodb` as the host in that URI.
+
+```powershell
+docker compose -p project1 up -d mongodb
+docker run --rm --network project1_default --mount "type=bind,source=$PWD,target=/app" -w /app -e "MONGO_TEST_URI=$env:MONGO_TEST_URI" golang:1.25-alpine go test ./tests -run TestMongoBackedApplicationFlow -v -count=1
+```
 
 ## 6) Custom API queries
 You can run live custom searches directly through the app entrypoint:
