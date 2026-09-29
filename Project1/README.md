@@ -197,7 +197,7 @@ docker compose -p project1 up --no-build
 This runs the previously built image using the container environment. The app uses the MongoDB service inside Docker and exits after its default search; MongoDB remains running.
 
 ## 5) Run stored tests
-The Docker alternatives use `--entrypoint go` to run the Go tool included in the image instead of the app. Rebuild the image after changing source code or tests.
+Run the Docker alternatives in PowerShell from the folder containing `go.mod` (`Project1` here). They mount the current directory into a Go 1.25 container and test the current source directly, without building the app image or depending on the project name, Dockerfile, or Compose configuration. `-count=1` forces a fresh test run.
 
 The current cache tests expect file caching. Docker test commands clear `MONGO_URI` and skip starting MongoDB; for local tests, ensure `MONGO_URI` is unset or empty in the shell.
 
@@ -209,8 +209,8 @@ go test ./...
 
 Docker alternative:
 
-```bash
-docker run --entrypoint go project1:latest test ./...
+```powershell
+docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./... -count=1
 ```
 
 Run the tests in verbose mode to see live output:
@@ -221,8 +221,8 @@ go test ./... -v
 
 Docker alternative:
 
-```bash
-docker run --entrypoint go project1:latest test ./... -v
+```powershell
+docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./... -v -count=1
 ```
 
 Run only the cached API tests:
@@ -233,8 +233,8 @@ go test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
 
 Docker alternative:
 
-```bash
-docker run --entrypoint go project1:latest test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
+```powershell
+docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v -count=1
 ```
 
 There is currently no `TestMongoCache` integration test in `tests/`.
@@ -267,7 +267,7 @@ docker compose -p project1 run --rm -v "./output:/app/output" go-app -topic "mac
 The app checks the configured cache first and only fetches from NewsAPI when needed.
 
 ## 7) Useful commands
-```bash
+```powershell
 docker compose -p project1 down
 
 docker compose -p project1 logs -f
@@ -276,8 +276,16 @@ docker compose -p project1 ps
 go test ./...
 
 # Docker alternative to go test
-docker run --entrypoint go project1:latest test ./...
+docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./... -count=1
 ```
 
 ## Submission notes
 For project submission, build the app for the target architecture you need, and keep the Docker setup consistent with the MongoDB service defined in `docker-compose.yml`.
+
+From `Project1`, build an x64 submission image:
+
+```powershell
+docker buildx build --platform linux/amd64 --load -f dockerfile -t project1-news .
+```
+
+This tags a separate submission image as `project1-news`; the Compose commands above use `project1-go-app`.

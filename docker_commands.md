@@ -62,10 +62,4 @@ Stop the services while retaining cached articles:
 docker compose -p project1 down
 ```
 
-For an x64 submission image:
-
-```powershell
-docker buildx build --platform linux/amd64 --load -f dockerfile -t project1-news .
-```
-
-This tags a separate submission image; the Compose commands above use `project1-go-app`.
+For the x64 submission build command, see [Submission notes in the README](README.md#submission-notes).
