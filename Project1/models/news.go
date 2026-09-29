@@ -4,7 +4,7 @@ package models
 import (
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type NewsAPIResponse struct {
@@ -37,7 +37,7 @@ type DateRange struct {
 }
 
 type ArticleRecord struct {
-	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	ID        bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Article   `bson:",inline"`
 	Topic     string    `json:"topic" bson:"topic"`
 	DateRange DateRange `json:"dateRange" bson:"dateRange"`

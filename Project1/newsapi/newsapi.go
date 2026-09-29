@@ -2,7 +2,9 @@ package newsapi
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -20,22 +22,45 @@ type Article = models.Article
 
 // Request defines the query parameters used for a NewsAPI call.
 type Request struct {
-	APIKey  string
-	Topic   string
-	Country string
-	Days    int
-	Limit   int
-	Page    int
+	APIKey       string
+	Topic        string
+	Country      string
+	Days         int
+	Limit        int
+	Page         int
+	Timeout      time.Duration
+	MongoTimeout time.Duration
+}
+
+const (
+	defaultAPITimeout   = 15 * time.Second
+	defaultMongoTimeout = 10 * time.Second
+)
+
+func NormalizeRequestTimeouts(req Request) Request {
+	if req.Timeout <= 0 {
+		req.Timeout = defaultAPITimeout
+	}
+	if req.MongoTimeout <= 0 {
+		req.MongoTimeout = defaultMongoTimeout
+	}
+	return req
+}
+
+func FormatTimeoutError(kind string, timeout time.Duration, err error) error {
+	if err == nil {
+		return fmt.Errorf("%s timed out after %s", kind, timeout)
+	}
+	return fmt.Errorf("%s timed out after %s: %w", kind, timeout, err)
 }
 
 // FetchArticles searches dated articles by topic, or country headlines when no topic is supplied.
 func FetchArticles(req Request) ([]Article, error) {
-	// Validate API Key
+	req = NormalizeRequestTimeouts(req)
 	if strings.TrimSpace(req.APIKey) == "" {
 		return nil, fmt.Errorf("NEWSAPI_API_KEY is not set")
 	}
 
-	// Validate and catch edge cases
 	if req.Days < 1 {
 		req.Days = 1
 	}
@@ -48,7 +73,6 @@ func FetchArticles(req Request) ([]Article, error) {
 		req.Country = "us"
 	}
 
-	// Create request url with query parameters
 	params := url.Values{}
 	params.Set("apiKey", req.APIKey)
 	params.Set("country", req.Country)
@@ -61,28 +85,36 @@ func FetchArticles(req Request) ([]Article, error) {
 		params.Set("q", strings.TrimSpace(req.Topic))
 	}
 
-	// Calculate date range for the request
 	now := time.Now().UTC()
 	startDate := now.AddDate(0, 0, -(req.Days - 1))
 	params.Set("from", startDate.Format("2006-01-02"))
 	params.Set("to", now.Format(time.RFC3339))
 
-	// Set the endpoint based on whether a topic is provided or not
 	endpoint := "https://newsapi.org/v2/top-headlines?" + params.Encode()
 	if strings.TrimSpace(req.Topic) != "" {
-		params.Del("country") // Only the everything endpoint supports historical date bounds.
+		params.Del("country")
 		params.Set("sortBy", "publishedAt")
 		endpoint = "https://newsapi.org/v2/everything?" + params.Encode()
 	}
 
-	// Catch and handle errors from http req/res
-	resp, err := http.Get(endpoint)
+	ctx, cancel := context.WithTimeout(context.Background(), req.Timeout)
+	defer cancel()
+
+	client := &http.Client{Timeout: req.Timeout}
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
+		return nil, fmt.Errorf("build request failed: %w", err)
+	}
+
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			return nil, FormatTimeoutError("NewsAPI", req.Timeout, err)
+		}
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close() // Ensure response body is closed after reading
+	defer resp.Body.Close()
 
-	// Handle non-200 status codes
 	if resp.StatusCode != http.StatusOK {
 		var apiErr models.NewsAPIResponse
 		if err := json.NewDecoder(resp.Body).Decode(&apiErr); err == nil && apiErr.Message != "" {
@@ -91,9 +123,7 @@ func FetchArticles(req Request) ([]Article, error) {
 		return nil, fmt.Errorf("NewsAPI request failed: %s", resp.Status)
 	}
 
-	// Structure response, and catch errors before returning articles
 	var payload models.NewsAPIResponse
-
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, fmt.Errorf("decode response failed: %w", err)
 	}
@@ -109,7 +139,6 @@ func SaveArticles(dir string, articles []Article) error {
 		return err
 	}
 
-	// Write each article to a separate JSON file
 	for i, article := range articles {
 		data, err := json.MarshalIndent(article, "", "  ")
 		if err != nil {
@@ -121,7 +150,6 @@ func SaveArticles(dir string, articles []Article) error {
 		}
 	}
 
-	// Write all articles to a single JSON file
 	allData, err := json.MarshalIndent(articles, "", "  ")
 	if err != nil {
 		return err
