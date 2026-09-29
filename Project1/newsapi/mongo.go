@@ -11,14 +11,14 @@ import (
 )
 
 // fetchMongoArticles connects the CLI to MongoDB, using the same coverage checks as the file cache.
-func fetchMongoArticles(uri string, req Request) ([]Article, error) {
+func fetchMongoArticles(uri string, req Request) ([]Article, bool, error) {
 	req = NormalizeRequestTimeouts(req)
 	ctx, cancel := context.WithTimeout(context.Background(), req.MongoTimeout)
 	defer cancel()
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	defer client.Disconnect(ctx)
 
@@ -29,7 +29,7 @@ func fetchMongoArticles(uri string, req Request) ([]Article, error) {
 
 	db := client.Database(name)
 	if err = indexMongoCache(ctx, db); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	return fetchCachedArticles("", req, time.Now().UTC(), FetchArticles, db)

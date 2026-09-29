@@ -103,6 +103,40 @@ func TestFetchCachedArticlesCoalescesConcurrentMisses(t *testing.T) {
 	}
 }
 
+func TestFetchCachedArticlesReportsAPIThenCache(t *testing.T) {
+	originalTransport := http.DefaultTransport
+	defer func() { http.DefaultTransport = originalTransport }()
+
+	var calls atomic.Int32
+	http.DefaultTransport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		calls.Add(1)
+		payload := map[string]any{
+			"status": "ok",
+			"articles": []map[string]any{{
+				"title": "cached result", "url": "https://example.com/a",
+				"publishedAt": time.Now().UTC().Format(time.RFC3339),
+			}},
+		}
+		body, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+		return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(string(body))), Request: r}, nil
+	})
+
+	dir := t.TempDir()
+	req := newsapi.Request{APIKey: "dummy", Topic: "cloud computing", Days: 1, Limit: 1}
+	if _, fromAPI, err := newsapi.FetchCachedArticlesWithSource(dir, req); err != nil || !fromAPI {
+		t.Fatalf("first request should use NewsAPI, fromAPI=%t err=%v", fromAPI, err)
+	}
+	if _, fromAPI, err := newsapi.FetchCachedArticlesWithSource(dir, req); err != nil || fromAPI {
+		t.Fatalf("second request should use cache, fromAPI=%t err=%v", fromAPI, err)
+	}
+	if got := calls.Load(); got != 1 {
+		t.Fatalf("expected one NewsAPI call, got %d", got)
+	}
+}
+
 func TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate(t *testing.T) {
 	originalTransport := http.DefaultTransport
 	defer func() { http.DefaultTransport = originalTransport }()

@@ -25,6 +25,11 @@ type articleCache struct {
 	Articles []Article
 }
 
+type cachedArticlesResult struct {
+	articles []Article
+	fromAPI  bool
+}
+
 // RequestResult carries one request's outcome after a goroutine finishes.
 type RequestResult struct {
 	Request  Request
@@ -72,6 +77,12 @@ func ProcessCachedRequests(dir string, requests []Request) (<-chan RequestResult
 
 // FetchCachedArticles reads the cache before fetching missing date coverage or article counts.
 func FetchCachedArticles(dir string, req Request) ([]Article, error) {
+	articles, _, err := FetchCachedArticlesWithSource(dir, req)
+	return articles, err
+}
+
+// FetchCachedArticlesWithSource reports whether filling the result required a NewsAPI request.
+func FetchCachedArticlesWithSource(dir string, req Request) ([]Article, bool, error) {
 	if uri := os.Getenv("MONGO_URI"); uri != "" {
 		return fetchMongoArticles(uri, req)
 	}
@@ -79,7 +90,7 @@ func FetchCachedArticles(dir string, req Request) ([]Article, error) {
 }
 
 // fetchCachedArticles serializes cache updates and allows deterministic, offline verification.
-func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*mongo.Database) ([]Article, error) {
+func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*mongo.Database) ([]Article, bool, error) {
 	req.Topic, req.Country = strings.ToLower(strings.Join(strings.Fields(req.Topic), " ")), strings.ToLower(strings.TrimSpace(req.Country))
 	if req.Country == "" {
 		req.Country = "us"
@@ -118,8 +129,10 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 
 		cache.Articles = mergeArticles(nil, cache.Articles)
 		items := matchingArticles(cache.Articles, from, to)
+		fromAPI := false
 
 		if cache.From.IsZero() || from.Before(cache.From) || to.After(cache.To) || len(items) < req.Limit {
+			fromAPI = true
 			for page := 1; ; page++ {
 				query := req
 				query.Page, query.Limit = page, 100
@@ -143,7 +156,10 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 			}
 
 			if len(db) > 0 {
-				return items[:min(len(items), req.Limit)], saveMongoCache(db[0], req, cache)
+				if err := saveMongoCache(db[0], req, cache); err != nil {
+					return nil, err
+				}
+				return cachedArticlesResult{items[:min(len(items), req.Limit)], fromAPI}, nil
 			}
 			data, marshalErr := json.Marshal(cache)
 			if marshalErr != nil {
@@ -159,12 +175,13 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 			}
 		}
 
-		return items[:min(len(items), req.Limit)], nil
+		return cachedArticlesResult{items[:min(len(items), req.Limit)], fromAPI}, nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return result.([]Article), nil
+	resolved := result.(cachedArticlesResult)
+	return resolved.articles, resolved.fromAPI, nil
 }
 
 // mergeArticles keeps one article per URL, using full content when a URL is absent.

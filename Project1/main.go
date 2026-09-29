@@ -12,7 +12,7 @@ import (
 	"go-mongo-docker/newsapi"
 )
 
-var fetchArticles = newsapi.FetchCachedArticles
+var fetchArticles = newsapi.FetchCachedArticlesWithSource
 
 func runApp(args []string) error {
 	if err := newsapi.LoadEnvFile(".env"); err != nil {
@@ -71,28 +71,11 @@ func runApp(args []string) error {
 		MongoTimeout: *mongoTimeout,
 	}
 
-	items, err := fetchArticles(*cacheDir, request)
+	items, fromAPI, err := fetchArticles(*cacheDir, request)
 	if err != nil {
 		return err
 	}
-	if len(items) == 0 {
-		fmt.Println("No articles returned for this query.")
-		return nil
-	}
-
-	fmt.Printf("Fetched %d article(s)\n", len(items))
-	for i, item := range items {
-		fmt.Printf("\n%d. %s\n", i+1, item.Title)
-		if item.Source.Name != "" {
-			fmt.Printf("   Source: %s\n", item.Source.Name)
-		}
-		if item.Description != "" {
-			fmt.Printf("   %s\n", item.Description)
-		}
-		if item.URL != "" {
-			fmt.Printf("   %s\n", item.URL)
-		}
-	}
+	printArticles(os.Stdout, items, *articles, fromAPI)
 
 	if *outputDir != "" {
 		if err := newsapi.SaveArticles(*outputDir, items); err != nil {
@@ -102,6 +85,45 @@ func runApp(args []string) error {
 	}
 
 	return nil
+}
+
+func printArticles(w io.Writer, items []newsapi.Article, requested int, fromAPI bool) {
+	fmt.Fprintf(w, "Fetched %d of %d requested article(s)\n", len(items), requested)
+	source := "cache"
+	if fromAPI {
+		source = "News API"
+	}
+	fmt.Fprintf(w, "Results: %s\n", source)
+	if len(items) < requested {
+		fmt.Fprintf(w, "Only %d of %d requested article(s) were available.\n", len(items), requested)
+	}
+	if len(items) == 0 {
+		fmt.Fprintln(w, "No articles returned for this query.")
+		return
+	}
+
+	for i, item := range items {
+		title := item.Title
+		if title == "" {
+			title = "(untitled)"
+		}
+		fmt.Fprintf(w, "\n%d. %s\n", i+1, title)
+		if item.Source.Name != "" {
+			fmt.Fprintf(w, "   Source: %s\n", item.Source.Name)
+		}
+		if item.Author != "" {
+			fmt.Fprintf(w, "   Author: %s\n", item.Author)
+		}
+		if item.PublishedAt != nil {
+			fmt.Fprintf(w, "   Published: %s\n", item.PublishedAt.Format("2006-01-02 15:04 MST"))
+		}
+		if item.Description != "" {
+			fmt.Fprintf(w, "   Description: %s\n", item.Description)
+		}
+		if item.URL != "" {
+			fmt.Fprintf(w, "   URL: %s\n", item.URL)
+		}
+	}
 }
 
 func main() {
