@@ -26,7 +26,7 @@ This project is a Go-based news search app that fetches stories from NewsAPI, ca
 - Go app entrypoint: `main.go`
 - Shared models: `models/`
 - Core app logic: `newsapi/`
-- Stored tests: `tests/`
+- Tests are co-located with the packages they test (`main_test.go`, `newsapi/*_test.go`).
 - MongoDB container: `docker-compose.yml`
 
 ## Concurrency design
@@ -196,7 +196,7 @@ docker compose -p project1 up --no-build
 
 This runs the previously built image using the container environment. The app uses the MongoDB service inside Docker and exits after its default search; MongoDB remains running.
 
-## 5) Run stored tests
+## 5) Run tests
 Run the Docker alternatives in PowerShell from the folder containing `go.mod` (`Project1` here). They mount the current directory into a Go 1.25 container and test the current source directly, without building the app image or depending on the project name, Dockerfile, or Compose configuration. `-count=1` forces a fresh test run.
 
 The current cache tests expect file caching. Docker test commands clear `MONGO_URI` and skip starting MongoDB; for local tests, ensure `MONGO_URI` is unset or empty in the shell.
@@ -213,7 +213,7 @@ Docker alternative:
 docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./... -count=1
 ```
 
-Run the tests in verbose mode to see live output:
+The CLI tests are beside `main.go`; API, cache, timeout, and concurrency tests are beside the `newsapi` package they cover. Run the tests in verbose mode to see live output:
 
 ```bash
 go test ./... -v
@@ -228,16 +228,16 @@ docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI
 Run only the cached API tests:
 
 ```bash
-go test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
+go test ./newsapi -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
 ```
 
 Docker alternative:
 
 ```powershell
-docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v -count=1
+docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./newsapi -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v -count=1
 ```
 
-There is currently no `TestMongoCache` integration test in `tests/`.
+There is currently no `TestMongoCache` integration test in `newsapi/`.
 
 ## 6) Custom API queries
 You can run live custom searches directly through the app entrypoint:

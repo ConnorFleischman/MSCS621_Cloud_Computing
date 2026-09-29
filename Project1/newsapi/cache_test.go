@@ -1,4 +1,4 @@
-package main_test
+package newsapi_test
 
 import (
 	"testing"
