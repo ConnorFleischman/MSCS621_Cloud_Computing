@@ -2,6 +2,8 @@ package newsapi
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"os"
 	"time"
 
@@ -20,7 +22,11 @@ func fetchMongoArticles(uri string, req Request) ([]Article, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		cleanup, cancel := context.WithTimeout(context.Background(), req.MongoTimeout)
+		defer cancel()
+		_ = client.Disconnect(cleanup)
+	}()
 
 	name := os.Getenv("MONGO_DATABASE")
 	if name == "" {
@@ -32,7 +38,7 @@ func fetchMongoArticles(uri string, req Request) ([]Article, bool, error) {
 		return nil, false, err
 	}
 
-	return fetchCachedArticles("", req, time.Now().UTC(), FetchArticles, db)
+	return fetchCachedArticles(fmt.Sprintf("mongo:%x:%s", sha256.Sum256([]byte(uri)), name), req, time.Now().UTC(), FetchArticles, db)
 }
 
 // indexMongoCache enforces article identity and indexes topic/date searches and coverage lookups.
@@ -59,7 +65,7 @@ func loadMongoCache(db *mongo.Database, req Request, from, to time.Time) (articl
 
 	var cache articleCache
 	filter := bson.M{"topic": req.Topic, "country": req.Country, "from": bson.M{"$lte": from}, "to": bson.M{"$gte": to}}
-	err := db.Collection("coverage").FindOne(ctx, filter).Decode(&cache)
+	err := db.Collection("coverage").FindOne(ctx, filter, options.FindOne().SetSort(bson.D{{Key: "fetchedat", Value: -1}})).Decode(&cache)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return cache, err
 	}
@@ -90,12 +96,21 @@ func saveMongoCache(db *mongo.Database, req Request, cache articleCache) error {
 			Topic, Country, Key string
 		}{article, req.Topic, req.Country, key}
 
-		if _, err := db.Collection("articles").UpdateOne(ctx, filter, bson.M{"$set": doc}, options.UpdateOne().SetUpsert(true)); err != nil {
+		if err := upsertCacheDocument(ctx, db.Collection("articles"), filter, bson.M{"$set": doc}); err != nil {
 			return err
 		}
 	}
 
 	filter := bson.M{"topic": req.Topic, "country": req.Country, "from": cache.From, "to": cache.To}
-	_, err := db.Collection("coverage").UpdateOne(ctx, filter, bson.M{"$set": filter}, options.UpdateOne().SetUpsert(true))
+	return upsertCacheDocument(ctx, db.Collection("coverage"), filter, bson.M{"$set": bson.M{"topic": req.Topic, "country": req.Country, "from": cache.From, "to": cache.To, "fetchedat": cache.FetchedAt, "exhausted": cache.Exhausted, "requestedlimit": cache.RequestedLimit}})
+}
+
+// Different date windows (or processes) can discover the same article at once.
+// If another writer wins the unique-key insert, update that document instead.
+func upsertCacheDocument(ctx context.Context, collection *mongo.Collection, filter, update bson.M) error {
+	_, err := collection.UpdateOne(ctx, filter, update, options.UpdateOne().SetUpsert(true))
+	if mongo.IsDuplicateKeyError(err) {
+		_, err = collection.UpdateOne(ctx, filter, update)
+	}
 	return err
 }

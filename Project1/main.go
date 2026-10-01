@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -29,6 +32,7 @@ func runApp(args []string) error {
 	articles := fs.Int("articles", 1, "number of articles to request")
 	outputDir := fs.String("output", "", "folder to save article JSON documents")
 	cacheDir := fs.String("cache", ".newsapi-cache", "folder for cached queries")
+	batch := fs.String("batch", "", "JSON file containing searches with topic, days, articles, and optional country")
 	apiTimeout := fs.Duration("api-timeout", 15*time.Second, "timeout for NewsAPI requests")
 	mongoTimeout := fs.Duration("mongo-timeout", 10*time.Second, "timeout for MongoDB cache operations")
 
@@ -71,20 +75,78 @@ func runApp(args []string) error {
 		MongoTimeout: *mongoTimeout,
 	}
 
-	items, fromAPI, err := fetchArticles(*cacheDir, request)
-	if err != nil {
-		return err
-	}
-	printArticles(os.Stdout, items, *articles, fromAPI)
-
-	if *outputDir != "" {
-		if err := newsapi.SaveArticles(*outputDir, items); err != nil {
-			return fmt.Errorf("save articles failed: %w", err)
+	requests := []newsapi.Request{request}
+	if *batch != "" {
+		var err error
+		requests, err = readBatch(*batch, request)
+		if err != nil {
+			return err
 		}
-		fmt.Printf("\nSaved article documents to %s\n", *outputDir)
 	}
+	results, failures := newsapi.ProcessRequestsWithSource(requests, func(req newsapi.Request) ([]newsapi.Article, bool, error) {
+		return fetchArticles(*cacheDir, req)
+	})
+	var errs []error
+	for result := range results {
+		if *batch != "" {
+			fmt.Printf("\nSearch %d: %s\n", result.Index+1, result.Request.Topic)
+		}
+		printArticles(os.Stdout, result.Articles, result.Request.Limit, result.FromAPI)
+		if *outputDir != "" {
+			dir := *outputDir
+			if *batch != "" {
+				dir = filepath.Join(dir, fmt.Sprintf("search_%03d", result.Index+1))
+			}
+			if err := newsapi.SaveArticles(dir, result.Articles); err != nil {
+				errs = append(errs, fmt.Errorf("save search %d: %w", result.Index+1, err))
+			} else {
+				fmt.Printf("\nSaved article documents to %s\n", dir)
+			}
+		}
+	}
+	for err := range failures {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
+}
 
-	return nil
+func readBatch(path string, defaults newsapi.Request) ([]newsapi.Request, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	var entries []struct {
+		Topic    string `json:"topic"`
+		Days     int    `json:"days"`
+		Articles int    `json:"articles"`
+		Country  string `json:"country"`
+	}
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&entries); err != nil {
+		return nil, fmt.Errorf("read batch: %w", err)
+	}
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
+		return nil, fmt.Errorf("batch must contain one JSON array")
+	}
+	if len(entries) == 0 {
+		return nil, fmt.Errorf("batch must contain at least one search")
+	}
+	requests := make([]newsapi.Request, len(entries))
+	for i, entry := range entries {
+		if strings.TrimSpace(entry.Topic) == "" || entry.Days < 1 || entry.Articles < 1 {
+			return nil, fmt.Errorf("batch search %d requires a topic, days >= 1, and articles >= 1", i+1)
+		}
+		req := defaults
+		req.Topic, req.Days, req.Limit = entry.Topic, entry.Days, entry.Articles
+		if entry.Country != "" {
+			req.Country = entry.Country
+		}
+		requests[i] = req
+	}
+	return requests, nil
 }
 
 func printArticles(w io.Writer, items []newsapi.Article, requested int, fromAPI bool) {

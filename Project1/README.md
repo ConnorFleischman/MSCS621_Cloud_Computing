@@ -69,6 +69,21 @@ go run . -topic "cloud computing" -days 7 -articles 5
 
 The same fetch path is used in both cases; the concurrency helper simply exposes the per-request goroutine/channel model for multi-user workloads.
 
+To run the searches in `searches.example.json` concurrently, run from `Project1`:
+
+```powershell
+go run . -batch searches.example.json
+```
+
+Docker equivalent, after configuring `.env` as described below:
+
+```powershell
+docker compose -p project1 build go-app
+docker compose -p project1 run --rm -v "./searches.example.json:/app/searches.example.json:ro" go-app -batch /app/searches.example.json
+```
+
+The build includes the latest batch-search code. The read-only mount supplies the JSON file because the runtime image contains only the executable and its runtime dependencies. Compose starts MongoDB automatically.
+
 ## Prerequisites
 - Go 1.25.0+ (the module's minimum version)
 - Docker Desktop or Docker Engine

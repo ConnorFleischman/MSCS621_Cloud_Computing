@@ -22,6 +22,8 @@ type Article = models.Article
 
 // Request defines the query parameters used for a NewsAPI call.
 type Request struct {
+	// HTTPClient permits isolated transports without changing http.DefaultTransport.
+	HTTPClient   *http.Client
 	APIKey       string
 	Topic        string
 	Country      string
@@ -101,6 +103,9 @@ func FetchArticles(req Request) ([]Article, error) {
 	defer cancel()
 
 	client := &http.Client{Timeout: req.Timeout}
+	if req.HTTPClient != nil {
+		client = req.HTTPClient
+	}
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build request failed: %w", err)

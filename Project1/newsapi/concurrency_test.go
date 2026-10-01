@@ -43,7 +43,7 @@ func TestProcessRequestsReturnsResultsAndErrors(t *testing.T) {
 	if _, ok := results["gamma"]; !ok {
 		t.Fatalf("expected gamma result to be processed")
 	}
-	if len(errs) != 1 || errs[0] != "beta failed" {
+	if len(errs) != 1 || errs[0] != "request 2 (\"beta\"): beta failed" {
 		t.Fatalf("expected a single beta error, got %#v", errs)
 	}
 }

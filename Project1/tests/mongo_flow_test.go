@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -44,10 +45,36 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 
 	// Ensure the MongoDB server is reachable before running the test.
 	serverCalls := atomic.Int32{}
+	parallelCalls := atomic.Int32{}
+	parallelReady := make(chan struct{})
+	overlapCalls := atomic.Int32{}
+	overlapReady := make(chan struct{})
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("apiKey") != "integration-test-key" {
 			http.Error(w, "unexpected API key", http.StatusUnauthorized)
 			return
+		}
+		if strings.HasPrefix(r.URL.Query().Get("q"), "parallel-") {
+			if parallelCalls.Add(1) == 2 {
+				close(parallelReady)
+			}
+			select {
+			case <-parallelReady:
+			case <-time.After(3 * time.Second):
+				http.Error(w, "independent MongoDB searches did not overlap", http.StatusGatewayTimeout)
+				return
+			}
+		}
+		if r.URL.Query().Get("q") == "overlap" {
+			if overlapCalls.Add(1) == 2 {
+				close(overlapReady)
+			}
+			select {
+			case <-overlapReady:
+			case <-time.After(3 * time.Second):
+				http.Error(w, "overlap timed out", 504)
+				return
+			}
 		}
 		call := serverCalls.Add(1)
 		var articles []newsapi.Article
@@ -61,15 +88,16 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 		default:
 			articles = []newsapi.Article{makeArticle(r.URL.Query().Get("q"), time.Hour)}
 		}
+		if r.URL.Query().Get("q") == "mixed-limits" {
+			articles = makeArticles(30)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{"status": "ok", "articles": articles})
 	}))
 	defer server.Close()
 
-	// Override the default HTTP transport to redirect requests to the test server.
-	oldTransport := http.DefaultTransport
-	http.DefaultTransport = redirectTransport{target: server.URL, base: oldTransport}
-	defer func() { http.DefaultTransport = oldTransport }()
+	// Inject the mock only into NewsAPI requests; MongoDB keeps its own transport.
+	apiClient := &http.Client{Transport: redirectTransport{target: server.URL, base: http.DefaultTransport}}
 
 	// Set up a unique MongoDB database for this test to avoid conflicts with other tests or data.
 	databaseName := fmt.Sprintf("news_integration_%d", time.Now().UnixNano())
@@ -92,7 +120,7 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	}()
 
 	// Run a series of requests to test the full application flow, including caching behavior and concurrent requests.
-	request := newsapi.Request{APIKey: "integration-test-key", Topic: "flow", Days: 3, Limit: 1}
+	request := newsapi.Request{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "flow", Days: 3, Limit: 1}
 	items, fromAPI, err := newsapi.FetchCachedArticlesWithSource("", request)
 	if err != nil || !fromAPI || len(items) != 1 {
 		t.Fatalf("first search: got %d articles, fromAPI=%t, err=%v", len(items), fromAPI, err)
@@ -126,8 +154,8 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 
 	// Test concurrent requests to verify that the application can handle multiple requests in parallel and that the MongoDB cache is used appropriately.
 	requests := []newsapi.Request{
-		{APIKey: "integration-test-key", Topic: "parallel-a", Days: 1, Limit: 1},
-		{APIKey: "integration-test-key", Topic: "parallel-b", Days: 1, Limit: 1},
+		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "parallel-a", Days: 1, Limit: 1},
+		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "parallel-b", Days: 1, Limit: 1},
 	}
 	results, errs := newsapi.ProcessCachedRequests("", requests)
 	resultCount := 0
@@ -143,6 +171,69 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	}
 	if resultCount != len(requests) || serverCalls.Load() != 5 {
 		t.Fatalf("concurrent searches: got %d results and %d API calls, want 2 and 5", resultCount, serverCalls.Load())
+	}
+
+	// Short results must persist exhaustion metadata and serve repeat queries.
+	short := newsapi.Request{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "short", Days: 1, Limit: 20}
+	for i := range 2 {
+		items, api, err := newsapi.FetchCachedArticlesWithSource("", short)
+		if err != nil || len(items) != 1 || api != (i == 0) {
+			t.Fatalf("short search %d: count=%d api=%t err=%v", i, len(items), api, err)
+		}
+	}
+	if serverCalls.Load() != 6 {
+		t.Fatalf("repeat short query reached API: %d calls", serverCalls.Load())
+	}
+	short.Limit = 21
+	if _, api, err := newsapi.FetchCachedArticlesWithSource("", short); err != nil || !api {
+		t.Fatalf("expanded short query: api=%t err=%v", api, err)
+	}
+
+	before := serverCalls.Load()
+	mixed, failures := newsapi.ProcessCachedRequests("", []newsapi.Request{
+		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "mixed-limits", Days: 3, Limit: 5},
+		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "mixed-limits", Days: 3, Limit: 20},
+	})
+	count := 0
+	for result := range mixed {
+		count++
+		if len(result.Articles) != result.Request.Limit {
+			t.Errorf("limit %d got %d", result.Request.Limit, len(result.Articles))
+		}
+	}
+	for err := range failures {
+		t.Error(err)
+	}
+	if count != 2 || serverCalls.Load()-before != 1 {
+		t.Fatalf("mixed limits: results=%d API calls=%d", count, serverCalls.Load()-before)
+	}
+
+	overlapping, failures := newsapi.ProcessCachedRequests("", []newsapi.Request{
+		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "overlap", Days: 1, Limit: 1},
+		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "overlap", Days: 2, Limit: 1},
+	})
+	count = 0
+	for result := range overlapping {
+		count++
+		if len(result.Articles) != 1 {
+			t.Errorf("overlapping search returned %d articles", len(result.Articles))
+		}
+	}
+	for err := range failures {
+		t.Error(err)
+	}
+	if count != 2 {
+		t.Fatalf("overlapping search successes=%d", count)
+	}
+	assertArticleCount(t, db, "overlap", 1)
+
+	// Expired exhaustion metadata must allow fresh news to be discovered.
+	_, err = db.Collection("coverage").UpdateMany(context.Background(), bson.M{"topic": "short"}, bson.M{"$set": bson.M{"fetchedat": time.Now().Add(-time.Hour)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, api, err := newsapi.FetchCachedArticlesWithSource("", short); err != nil || !api {
+		t.Fatalf("expired Mongo cache: api=%t err=%v", api, err)
 	}
 }
 

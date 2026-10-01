@@ -32,3 +32,5 @@
 - Keep production credentials out of tests
 9. Look into ways we can reduce the size of the docker image for this project. Come back with 3 solutions, and what changes, if any, are required. 
 10. Implement "Multi-stage build with an Alpine runtime" solution, and give new docker command instructions that would fit with this new configuration, if needed. 
+11. Review the assignment guidelines and highlight any major issues with the code itself.
+12. Fix issues with cache and concurrency (issues mentioned in response to previous prompt)
