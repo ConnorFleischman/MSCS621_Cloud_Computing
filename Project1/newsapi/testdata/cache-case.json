@@ -1,0 +1,35 @@
+{
+  "request": {
+    "topic": "fixture topic",
+    "days": 2,
+    "limit": 1
+  },
+  "newsapi_response": {
+    "status": "ok",
+    "totalResults": 1,
+    "articles": [
+      {
+        "title": "Fixture cache article",
+        "author": "Fixture Author",
+        "description": "Fixture summary",
+        "url": "https://example.com/fixture",
+        "source": {
+          "name": "Fixture News"
+        },
+        "publishedAt": "2026-10-01T10:00:00Z"
+      }
+    ]
+  },
+  "expected": {
+    "miss": {
+      "api_calls": 1,
+      "sources": ["News API"],
+      "titles": ["Fixture cache article"]
+    },
+    "hit": {
+      "api_calls": 1,
+      "sources": ["News API", "cache"],
+      "titles": ["Fixture cache article"]
+    }
+  }
+}

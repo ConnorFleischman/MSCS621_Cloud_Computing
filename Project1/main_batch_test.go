@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ func TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate(t *testing.T) {
 }
 
 func TestBatchRejectsInvalidInputBeforeFetching(t *testing.T) {
-	for _, input := range []string{`[]`, `null`, `[{"topic":"x","days":0,"articles":1}]`, `[{"topic":"x","days":1,"articles":1,"typo":2}]`, `[] []`} {
+	for _, input := range []string{`[]`, `null`, `[{"topic":"x","days":0,"articles":1}]`, `[{"topic":"x","days":1,"articles":0}]`, `[{"days":1,"articles":1}]`, `[{"topic":"x","days":1,"articles":1,"typo":2}]`, `[] []`} {
 		path := filepath.Join(t.TempDir(), "input.json")
 		if err := os.WriteFile(path, []byte(input), 0600); err != nil {
 			t.Fatal(err)
@@ -54,6 +55,72 @@ func TestBatchRejectsInvalidInputBeforeFetching(t *testing.T) {
 		if _, err := readBatch(path, newsapi.Request{}); err == nil {
 			t.Errorf("accepted %s", input)
 		}
+	}
+}
+
+func TestInvalidBatchFixture(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "invalid-batch-case.json"))
+	if err != nil {
+		t.Fatalf("read invalid batch fixture: %v", err)
+	}
+	var fixture struct {
+		Input         json.RawMessage `json:"input"`
+		ExpectedError string          `json:"expected_error"`
+	}
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatalf("decode invalid batch fixture: %v", err)
+	}
+	path := filepath.Join(t.TempDir(), "invalid-batch.json")
+	if err := os.WriteFile(path, fixture.Input, 0600); err != nil {
+		t.Fatalf("write invalid batch input: %v", err)
+	}
+	_, err = readBatch(path, newsapi.Request{})
+	if err == nil {
+		t.Fatal("invalid batch fixture was accepted")
+	}
+	if got, want := err.Error(), fixture.ExpectedError; got != want {
+		t.Fatalf("validation error = %q, want %q", got, want)
+	}
+}
+
+func TestCLIRejectsInvalidInputBeforeFetching(t *testing.T) {
+	old := fetchArticles
+	defer func() { fetchArticles = old }()
+	fetched := false
+	fetchArticles = func(string, newsapi.Request) ([]newsapi.Article, bool, error) {
+		fetched = true
+		return nil, false, nil
+	}
+
+	for _, args := range [][]string{
+		{"-topic", "cloud computing", "-days", "0", "-articles", "1"},
+		{"-topic", "cloud computing", "-days", "1", "-articles", "0"},
+		{"-topic", "cloud computing", "-days", "invalid", "-articles", "1"},
+	} {
+		fetched = false
+		if err := runApp(args); err == nil {
+			t.Errorf("runApp(%v) accepted invalid input", args)
+		}
+		if fetched {
+			t.Errorf("runApp(%v) fetched articles before rejecting input", args)
+		}
+	}
+}
+
+func TestCLIValidInputReachesFetcher(t *testing.T) {
+	old := fetchArticles
+	defer func() { fetchArticles = old }()
+	var got newsapi.Request
+	fetchArticles = func(_ string, req newsapi.Request) ([]newsapi.Article, bool, error) {
+		got = req
+		return nil, false, nil
+	}
+
+	if err := runApp([]string{"-topic", "cloud computing", "-days", "2", "-articles", "3"}); err != nil {
+		t.Fatalf("runApp returned error for valid input: %v", err)
+	}
+	if got.Topic != "cloud computing" || got.Days != 2 || got.Limit != 3 {
+		t.Fatalf("fetch request = topic %q, days %d, limit %d", got.Topic, got.Days, got.Limit)
 	}
 }
 

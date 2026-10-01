@@ -252,6 +252,25 @@ Docker alternative:
 docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./newsapi -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v -count=1
 ```
 
+### Reproducible fixture cases
+The fixture-backed tests use checked-in request/response inputs and expected outputs. They use a fixed cache clock and mocked fetch functions, so they do not require a NewsAPI key, a running MongoDB server, or network access. Run these commands from `Project1` with `MONGO_URI` unset or empty:
+
+```powershell
+go test ./newsapi -run '^TestCacheMissFixture$' -v -count=1
+go test ./newsapi -run '^TestCacheHitFixture$' -v -count=1
+go test . -run '^TestInvalidBatchFixture$' -v -count=1
+go test ./newsapi -run '^TestConcurrentRequestsFixture$' -v -count=1
+go test . -run '^TestPrintArticlesGoldenOutput$' -v -count=1
+go test ./... -count=1
+```
+
+Fixture inputs and expected results are kept together in `newsapi/testdata/cache-case.json`, `newsapi/testdata/concurrent-case.json`, and `testdata/invalid-batch-case.json`. The two CLI output goldens are under `testdata/expected/`. Expected behavior:
+- Cache miss: one API fetch; output source is `News API` and the returned title is `Fixture cache article`.
+- Cache hit: two identical searches produce sources `News API` then `cache`, with only one API fetch total.
+- Invalid batch: the exact validation message is part of `testdata/invalid-batch-case.json`; no fetch is performed.
+- Concurrent requests: both fixture requests overlap; normalized results are compared with the expected result in `newsapi/testdata/concurrent-case.json`.
+- CLI output: cache-hit and cache-miss text must exactly match their golden files under `testdata/expected/`.
+
 The full-flow integration test is kept separate from the unit tests because it requires a running MongoDB server.
 
 Run the full application-flow integration test against a disposable MongoDB instance. It uses a mock NewsAPI server and does not read `.env`, `MONGO_URI`, or production API credentials. Set `MONGO_TEST_URI` to the test server URI first; when running the test container on the Compose network, use `mongodb` as the host in that URI.

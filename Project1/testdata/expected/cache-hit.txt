@@ -1,0 +1,8 @@
+Fetched 1 of 1 requested article(s)
+Results: cache
+
+1. Fixture cache article
+   Source: Fixture News
+   Published: 2026-10-01 10:00 UTC
+   Description: Fixture summary
+   URL: https://example.com/fixture

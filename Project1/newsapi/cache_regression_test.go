@@ -1,7 +1,11 @@
 package newsapi
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -14,6 +18,107 @@ func cacheTestArticles(now time.Time, count int) []Article {
 		items[i] = Article{Title: fmt.Sprint(i), URL: fmt.Sprintf("https://test/%d", i), PublishedAt: &now}
 	}
 	return items
+}
+
+func readCacheFixture(t *testing.T, name string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join("testdata", name))
+	if err != nil {
+		t.Fatalf("read cache fixture %s: %v", name, err)
+	}
+	return data
+}
+
+type cacheFixtureOutcome struct {
+	APICalls int      `json:"api_calls"`
+	Sources  []string `json:"sources"`
+	Titles   []string `json:"titles"`
+}
+
+type cacheFixture struct {
+	Request  Request `json:"request"`
+	Response struct {
+		Status   string    `json:"status"`
+		Articles []Article `json:"articles"`
+	} `json:"newsapi_response"`
+	Expected struct {
+		Miss cacheFixtureOutcome `json:"miss"`
+		Hit  cacheFixtureOutcome `json:"hit"`
+	} `json:"expected"`
+}
+
+func loadCacheFixture(t *testing.T) cacheFixture {
+	t.Helper()
+	var fixture cacheFixture
+	if err := json.Unmarshal(readCacheFixture(t, "cache-case.json"), &fixture); err != nil {
+		t.Fatalf("decode cache fixture: %v", err)
+	}
+	return fixture
+}
+
+func cacheFixtureFetcher(fixture cacheFixture, calls *int) func(Request) ([]Article, error) {
+	return func(Request) ([]Article, error) {
+		(*calls)++
+		if fixture.Response.Status != "ok" {
+			return nil, fmt.Errorf("unexpected fixture status %q", fixture.Response.Status)
+		}
+		return fixture.Response.Articles, nil
+	}
+}
+
+func assertCacheFixture(t *testing.T, got, want cacheFixtureOutcome) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("cache fixture result = %+v, want %+v", got, want)
+	}
+}
+
+func cacheSource(fromAPI bool) string {
+	if fromAPI {
+		return "News API"
+	}
+	return "cache"
+}
+
+func articleTitles(articles []Article) []string {
+	titles := make([]string, len(articles))
+	for i, article := range articles {
+		titles[i] = article.Title
+	}
+	return titles
+}
+
+func TestCacheMissFixture(t *testing.T) {
+	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	fixture := loadCacheFixture(t)
+	var calls int
+	articles, fromAPI, err := fetchCachedArticles(t.TempDir(), fixture.Request, now, cacheFixtureFetcher(fixture, &calls))
+	if err != nil {
+		t.Fatalf("cache miss returned error: %v", err)
+	}
+	got := cacheFixtureOutcome{calls, []string{cacheSource(fromAPI)}, articleTitles(articles)}
+	assertCacheFixture(t, got, fixture.Expected.Miss)
+}
+
+func TestCacheHitFixture(t *testing.T) {
+	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	fixture := loadCacheFixture(t)
+	dir := t.TempDir()
+	var calls int
+	fetch := cacheFixtureFetcher(fixture, &calls)
+	first, firstFromAPI, err := fetchCachedArticles(dir, fixture.Request, now, fetch)
+	if err != nil {
+		t.Fatalf("initial cache miss returned error: %v", err)
+	}
+	second, secondFromAPI, err := fetchCachedArticles(dir, fixture.Request, now, fetch)
+	if err != nil {
+		t.Fatalf("cache hit returned error: %v", err)
+	}
+	if !reflect.DeepEqual(articleTitles(first), articleTitles(second)) {
+		t.Fatalf("cache hit articles differ: first=%v second=%v", articleTitles(first), articleTitles(second))
+	}
+	got := cacheFixtureOutcome{calls, []string{cacheSource(firstFromAPI), cacheSource(secondFromAPI)}, articleTitles(second)}
+	assertCacheFixture(t, got, fixture.Expected.Hit)
 }
 
 func TestIndependentCacheMissesOverlap(t *testing.T) {
@@ -120,6 +225,89 @@ func TestFailedFetchCanBeRetried(t *testing.T) {
 	items, _, err := fetchCachedArticles(dir, req, now, func(Request) ([]Article, error) { return cacheTestArticles(now, 1), nil })
 	if err != nil || len(items) != 1 {
 		t.Fatalf("retry: %v", err)
+	}
+}
+
+func TestCacheDateWindowIncludesTodayAndPreviousDay(t *testing.T) {
+	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	previousDay := time.Date(2026, 9, 30, 12, 0, 0, 0, time.UTC)
+	today := time.Date(2026, 10, 1, 9, 0, 0, 0, time.UTC)
+	beforeWindow := time.Date(2026, 9, 29, 23, 59, 0, 0, time.UTC)
+	nextDayBoundary := time.Date(2026, 10, 2, 0, 0, 0, 0, time.UTC)
+	articles := []Article{
+		{Title: "previous day", URL: "https://test/previous", PublishedAt: &previousDay},
+		{Title: "today", URL: "https://test/today", PublishedAt: &today},
+		{Title: "before window", URL: "https://test/before", PublishedAt: &beforeWindow},
+		{Title: "next day", URL: "https://test/next", PublishedAt: &nextDayBoundary},
+	}
+
+	for _, test := range []struct {
+		days int
+		want []string
+	}{
+		{days: 1, want: []string{"today"}},
+		{days: 2, want: []string{"today", "previous day"}},
+	} {
+		t.Run(fmt.Sprintf("days_%d", test.days), func(t *testing.T) {
+			got, _, err := fetchCachedArticles(t.TempDir(), Request{Topic: "date range", Days: test.days, Limit: 10}, now,
+				func(Request) ([]Article, error) { return articles, nil })
+			if err != nil {
+				t.Fatalf("fetchCachedArticles returned error: %v", err)
+			}
+			if len(got) != len(test.want) {
+				t.Fatalf("got %d articles, want %d: %#v", len(got), len(test.want), got)
+			}
+			for i, title := range test.want {
+				if got[i].Title != title {
+					t.Errorf("article %d = %q, want %q", i, got[i].Title, title)
+				}
+			}
+		})
+	}
+}
+
+func TestMergeArticlesDeduplicatesByURLAndContent(t *testing.T) {
+	cached := []Article{
+		{Title: "cached title", URL: "https://test/shared"},
+		{Title: "same content"},
+	}
+	fresh := []Article{
+		{Title: "fresh title", URL: "https://test/shared"},
+		{Title: "same content"},
+		{Title: "different content"},
+	}
+
+	got := mergeArticles(cached, fresh)
+	if len(got) != 3 {
+		t.Fatalf("got %d merged articles, want 3: %#v", len(got), got)
+	}
+	if got[0].Title != "cached title" {
+		t.Fatalf("duplicate URL replaced the cached article: %#v", got[0])
+	}
+}
+
+func TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit(t *testing.T) {
+	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	newest := time.Date(2026, 10, 1, 11, 0, 0, 0, time.UTC)
+	second := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	third := time.Date(2026, 9, 30, 10, 0, 0, 0, time.UTC)
+	articles := []Article{
+		{Title: "newest", URL: "https://test/newest", PublishedAt: &newest},
+		{Title: "duplicate", URL: "https://test/newest", PublishedAt: &newest},
+		{Title: "second", URL: "https://test/second", PublishedAt: &second},
+		{Title: "third", URL: "https://test/third", PublishedAt: &third},
+	}
+
+	got, _, err := fetchCachedArticles(t.TempDir(), Request{Topic: "limited", Days: 2, Limit: 2}, now,
+		func(Request) ([]Article, error) { return articles, nil })
+	if err != nil {
+		t.Fatalf("fetchCachedArticles returned error: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("got %d articles, want limit of 2", len(got))
+	}
+	if got[0].Title != "newest" || got[1].Title != "second" {
+		t.Fatalf("got unexpected limited results: %#v", got)
 	}
 }
 

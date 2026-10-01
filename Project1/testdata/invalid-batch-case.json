@@ -1,0 +1,10 @@
+{
+  "input": [
+    {
+      "topic": "",
+      "days": 1,
+      "articles": 1
+    }
+  ],
+  "expected_error": "batch search 1 requires a topic, days >= 1, and articles >= 1"
+}
