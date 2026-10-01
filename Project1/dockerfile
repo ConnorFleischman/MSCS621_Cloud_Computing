@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine
+FROM golang:1.25-alpine AS build
 
 WORKDIR /app
 
@@ -8,7 +8,13 @@ RUN go mod download
 
 # Build the actual project entrypoint, which uses the cache-aware NewsAPI flow.
 COPY . .
-RUN go build -o app .
+RUN CGO_ENABLED=0 go build -o app .
+
+# Ship only the executable and the certificates needed for HTTPS.
+FROM alpine:3.24
+RUN apk add --no-cache ca-certificates
+WORKDIR /app
+COPY --from=build /app/app ./app
 
 # Run the app with environment-provided flags.
 ENTRYPOINT ["./app"]

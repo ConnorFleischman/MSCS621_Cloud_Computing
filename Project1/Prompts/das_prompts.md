@@ -30,3 +30,5 @@
 - Test expanded date and article-limit requests.
 - Test concurrent searches.
 - Keep production credentials out of tests
+9. Look into ways we can reduce the size of the docker image for this project. Come back with 3 solutions, and what changes, if any, are required. 
+10. Implement "Multi-stage build with an Alpine runtime" solution, and give new docker command instructions that would fit with this new configuration, if needed. 
