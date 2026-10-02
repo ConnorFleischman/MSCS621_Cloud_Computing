@@ -34,7 +34,8 @@ func runApp(args []string) error {
 	cacheDir := fs.String("cache", ".newsapi-cache", "folder for cached queries")
 	batch := fs.String("batch", "", "JSON file containing searches with topic, days, articles, and optional country")
 	apiTimeout := fs.Duration("api-timeout", 15*time.Second, "timeout for NewsAPI requests")
-	mongoTimeout := fs.Duration("mongo-timeout", 10*time.Second, "timeout for MongoDB cache operations")
+	dbTimeout := fs.Duration("db-timeout", 10*time.Second, "timeout for database cache operations")
+	legacyTimeout := fs.Duration("mongo-timeout", 10*time.Second, "deprecated alias for db-timeout")
 
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -47,12 +48,27 @@ func runApp(args []string) error {
 		}
 		apiTimeout = &d
 	}
-	if val := strings.TrimSpace(os.Getenv("MONGO_TIMEOUT")); val != "" {
+	explicitDBTimeout := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "db-timeout" {
+			explicitDBTimeout = true
+		}
+	})
+	if !explicitDBTimeout {
+		*dbTimeout = *legacyTimeout
+	}
+	timeoutName := "DB_TIMEOUT"
+	val := strings.TrimSpace(os.Getenv(timeoutName))
+	if val == "" && !explicitDBTimeout {
+		timeoutName = "MONGO_TIMEOUT"
+		val = strings.TrimSpace(os.Getenv(timeoutName))
+	}
+	if val != "" {
 		d, err := time.ParseDuration(val)
 		if err != nil {
-			return fmt.Errorf("invalid MONGO_TIMEOUT %q: %w", val, err)
+			return fmt.Errorf("invalid %s %q: %w", timeoutName, val, err)
 		}
-		mongoTimeout = &d
+		dbTimeout = &d
 	}
 
 	if *query != "" && *topic == "technology" {
@@ -66,13 +82,13 @@ func runApp(args []string) error {
 	}
 
 	request := newsapi.Request{
-		APIKey:       strings.TrimSpace(os.Getenv("NEWSAPI_API_KEY")),
-		Topic:        *topic,
-		Country:      *country,
-		Days:         *days,
-		Limit:        *articles,
-		Timeout:      *apiTimeout,
-		MongoTimeout: *mongoTimeout,
+		APIKey:    strings.TrimSpace(os.Getenv("NEWSAPI_API_KEY")),
+		Topic:     *topic,
+		Country:   *country,
+		Days:      *days,
+		Limit:     *articles,
+		Timeout:   *apiTimeout,
+		DBTimeout: *dbTimeout,
 	}
 
 	requests := []newsapi.Request{request}

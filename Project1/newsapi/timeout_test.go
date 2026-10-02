@@ -16,7 +16,7 @@ func TestNormalizeRequestTimeoutsAppliesDefaults(t *testing.T) {
 	if got.Timeout <= 0 {
 		t.Fatal("expected API timeout default to be > 0")
 	}
-	if got.MongoTimeout <= 0 {
+	if got.DBTimeout <= 0 {
 		t.Fatal("expected Mongo timeout default to be > 0")
 	}
 }

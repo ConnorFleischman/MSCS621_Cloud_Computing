@@ -1,109 +1,76 @@
-# Smaller Docker image: multi-stage Alpine runtime
+# Smaller image: embedded SQLite and a static executable
 
-The Dockerfile now builds the application in a Go image and copies only the
-compiled executable into a separate Alpine runtime image. The final image no
-longer contains the Go compiler, downloaded Go modules, build cache, source, or
-tests. Alpine retains a shell for troubleshooting.
+The application now embeds SQLite instead of requiring a MongoDB server image. The cache algorithm, CLI, JSON exports, goroutines/channels, and optional file cache remain. SQLite saves articles and coverage in a transaction and persists them in the Compose `sqlite-data` volume.
 
-## Changes
+## Selected build
 
-- Named the existing `golang:1.25-alpine` stage `build`.
-- Set `CGO_ENABLED=0` during compilation so the executable does not require C
-  libraries from the builder at runtime.
-- Added an `alpine:3.24` runtime stage with CA certificates for NewsAPI HTTPS
-  requests and other TLS connections.
-- Copied `/app/app` from the builder, preserving `WORKDIR /app` and
-  `ENTRYPOINT ["./app"]` so CLI flags and cache/output mounts work as before.
+The Dockerfile compiles `github.com/mattn/go-sqlite3` with Go and a C compiler inside an Alpine builder, then copies only the executable and CA certificates to `scratch`. The host only needs Docker. Build dependencies and UPX stay in the builder.
 
-No application code or Compose configuration changed. Build flags that strip
-debug information were not added. The existing `COPY . .` still copies the build
-context into the builder, but only the executable reaches the final image.
+Release flags use `-trimpath`, `-s -w`, static linking, `netgo`, `osusergo`, `sqlite_omit_load_extension`, C `-Oz`, and function/data section collection. UPX `--best --lzma` compresses the executable; the build verifies it with `upx -t`. Thread safety, WAL, transactions, locking, and durable synchronization remain enabled.
 
-## Normal build and run commands
-
-Run these commands from `Project1`:
+To disable executable compression for debugging or a runtime that disallows packed executables:
 
 ```powershell
-docker build -f dockerfile -t project1-go-app .
-docker compose -p project1 up -d mongodb
+docker build --build-arg COMPRESS=0 -f dockerfile -t project1-go-app .
+```
+
+The final image has no shell, package manager, compiler, source, `.env`, SQLite CLI, or database contents. Mount data at `/data`; `/tmp` is writable. The existing root execution model is retained to avoid changing bind-mount permissions as part of this migration.
+
+## Measurements
+
+Measured on Linux/amd64 through Docker Desktop, October 1, 2026 (local time). Builder: Go 1.25.14, GCC 15.2.0, UPX 5.2.0; C driver v1.14.52. The tested `golang:1.25-alpine` base resolved to `sha256:1ae0735f00daffa3aaf1363a5184c0d2dc55c78e3db4ec70241cdac97bf84b59`. Image tags and package repositories can change; rebuild measurements may differ.
+
+| Candidate | Executable bytes | Gzip-compressed executable bytes |
+| --- | ---: | ---: |
+| Pure Go (`modernc.org/sqlite` v1.59.0), stripped | 10,277,048 | 4,464,386 |
+| Pure Go, UPX compressed | 3,387,260 | 3,387,572 |
+| C SQLite, dynamically linked, `-Os` | 7,354,008 | 3,227,530 |
+| C SQLite, static, `-Os` | 7,386,344 | 3,246,384 |
+| C SQLite, static, `-Oz` and unused sections removed | 7,341,224 | 3,230,552 |
+| **Selected: previous row plus UPX** | **2,470,712** | **2,471,273** |
+
+The dynamic candidate also requires the 670,312-byte musl loader/runtime; its small executable reduction does not justify including that runtime. The pure-Go candidate passed the same ordinary Go tests in a temporary comparison checkout, but produced a larger artifact. Only the selected driver is retained in the project.
+
+| Runtime setup | Docker content size | Docker local disk usage |
+| --- | ---: | ---: |
+| Previous Go application | 11.3 MB | 35 MB |
+| Previous MongoDB image | 339 MB | 1.3 GB |
+| SQLite, static `-Os`, without UPX | 3.42 MB | 11 MB |
+| **Selected SQLite image (entire runtime system)** | **2.58 MB** | **5.28 MB** |
+
+Docker's containerd image store reports content and disk usage separately; disk usage includes compressed and unpacked storage. Do not present either as the sum of plain executable sizes. Using inspected content sizes, the selected image is approximately **99.3% smaller than the old Go plus MongoDB images combined**. Builder caches and persistent database data are excluded from this runtime comparison.
+
+The selected image's layer files total 2,650,071 bytes. A `docker image save` archive measured 2,595,328 bytes; gzipping that archive measured 2,581,164 bytes. The uncompressed `-Os` candidate's save archive measured 3,430,912 bytes (3,412,137 bytes after gzip). These exports use this Docker installation's compressed layer format; other engines/export formats can differ.
+
+Compression adds startup work: three invalid-argument startup measurements, excluding Docker startup, were 0.02-0.03 seconds and roughly 5 MB peak RSS unpacked, versus 0.14-0.15 seconds and roughly 7 MB packed. These are small local samples, not application throughput benchmarks. The compressed build is the default because minimum image size is the priority. This is the smallest validated candidate tested, not a claim of an absolute theoretical minimum.
+
+## Build, run, and test
+
+From `Project1`, configure `.env` as described in the [README](README.md), then:
+
+```powershell
+docker compose -p project1 build go-app
 docker compose -p project1 run --rm go-app -topic "cloud computing" -days 7 -articles 5
 ```
 
-Rebuild once to replace the old image, then rebuild after source changes as usual.
-Compose can also build the image with `docker compose -p project1 build go-app`.
-The README's older Go 1.22 build-context override is unnecessary: the builder
-already uses Go 1.25.
+SQLite is embedded; there is no database service to start. Repeated runs share `project1_sqlite-data`. Existing MongoDB volumes are preserved but not imported. The new cache starts empty and refills through NewsAPI.
 
-Normal Compose run, volume-mount, logs, and shutdown commands are unchanged.
-Keep `Project1/.env` on the host: Compose's `env_file` supplies its values at
-runtime. The final image no longer includes `.env`. For a direct `docker run`,
-pass `--env-file .env` and configure the appropriate MongoDB network/hostname.
-
-## Test commands
-
-The final image no longer has `go` or test source, so commands using
-`--entrypoint go go-app test ...` must use a development container instead.
-The README's existing PowerShell test command still works:
-
-```powershell
-docker run --rm --mount "type=bind,source=$PWD,target=/app" -w /app -e MONGO_URI= golang:1.25-alpine go test ./... -count=1
-```
-
-Alternatively, build the named builder stage to test the source included in that
-build. Use a separate tag to preserve the small runtime image:
+The runtime has no Go compiler. Build the development stage to run tests:
 
 ```powershell
 docker build -f dockerfile --target build -t project1-go-build .
-docker run --rm -e MONGO_URI= project1-go-build go test ./... -count=1
+docker run --rm -e DATABASE_PATH= -e MONGO_URI= project1-go-build go test ./... -count=1
+docker run --rm -e DATABASE_PATH= -e MONGO_URI= project1-go-build go test -race ./... -count=1
 ```
 
-The MongoDB integration test still requires `MONGO_TEST_URI` and access to a
-disposable MongoDB server, as described in the README. Local `go run` and
-`go test` commands are unchanged.
+Rebuild the development image after changing source or tests. The integration test runs automatically with mock HTTP responses and a temporary SQLite file; it no longer needs `MONGO_TEST_URI`.
 
-## Size and local storage
+## Verification
 
-Verification build measured with `docker image ls`:
+- Existing tests passed before migration; the old optional MongoDB integration test was skipped without its test URI.
+- All migrated Go tests and the race detector passed. Checks include existing cache/CLI behavior, transactional rollback, timeout handling, unknown schema versions, nullable dates, identity round-trips, country isolation, six concurrent writer processes, and recovery after killing a writer mid-transaction.
+- The actual compressed `scratch` image passed HTTPS mock requests, DNS, cache miss/hit across removed containers, six simultaneous containers sharing one database, batch input and JSON exports, file-cache mode, and invalid-argument handling.
+- A request to real NewsAPI with a deliberately invalid key returned the expected HTTP 401, verifying the shipped public CA bundle and DNS without using a real API key. No live successful NewsAPI query was needed for validation.
+- Compose configuration validates. The Go dependency graph contains no Mongo driver or BSON package.
 
-| Image | Disk usage | Content size |
-| --- | --- | --- |
-| Existing `project1-go-app:latest` | 768 MB | 204 MB |
-| New `project1-go-app:multistage-check` | 34.9 MB | 11.2 MB |
-
-This is approximately a 95% reduction in both reported measures. The verification
-build used a separate tag; rebuild with the normal command above to update the
-image used by Compose. Sizes can vary with platform, dependencies, and base-image
-updates.
-
-The image built successfully. A temporary container confirmed certificates are
-present, `/app` is writable, and `.env` and the Go compiler are absent. The CLI
-started and rejected `-days 0` with its expected validation message and exit code
-1. Live NewsAPI and MongoDB requests were not exercised by this startup check.
-
-Use `docker image ls` to compare the rebuilt runtime image with the old image.
-The reduction affects the Go application image; the separate MongoDB image is
-unchanged. Docker may retain builder layers as build cache, so a smaller runtime
-image does not automatically reclaim all local Docker storage.
-
-## On using docker compose and mongo image (AI Response)
-**The most reasonable reading is that the size requirement applies to your Go application image. The PDF does not explicitly require shrinking MongoDB—but it does not define whether supporting images count toward grading.**
-
-On page 1 of [the assignment PDF](C:/Users/daspa/OneDrive/Documents/MaristGraduateSemesters/FALL26/CloudComputing/MSCS621_Cloud_Computing/mscs621fa26Proj1.pdf), it says:
-
-> “A Docker image, docker file, and source code need to be submitted separately.”
-
-It then says the Dockerfile and source must produce the submitted image, followed by:
-
-> “The size of the docker image should be minimal.”
-
-That sequence points to **the image you build from your Go source and Dockerfile**. Your optimized application image—34.9 MB in our verification—is the natural submission artifact. MongoDB is an external dependency using a prebuilt image.
-
-**Using Compose is consistent with the written requirements.** The assignment requires a database of your choice and instructions for compiling and running the project. It neither requires nor prohibits Compose. In your project:
-
-- The **Dockerfile** builds the Go application image.
-- **Compose** starts MongoDB and the application, configures their connection, and manages database storage.
-- Compose does **not** combine MongoDB and Go into one image.
-
-I would keep the current architecture and include `docker-compose.yml` with the submission and run instructions. Explain that the app image is 34.9 MB and MongoDB is a separate runtime dependency; don’t present 34.9 MB as the entire system’s footprint. Providing equivalent `docker run` instructions would also make the submission accessible using the commands taught in class.
-
-Because image size explicitly affects grading, the one point worth confirming with the instructor is: **“Does the size comparison cover the submitted application image, or all images required to run the application, including the database?”** Until clarified, I would not spend effort modifying the MongoDB image.
+The previous application image is retained as `project1-go-app:mongo-backup`; `project1-go-app:latest` now contains SQLite. Old images and builder caches may remain on your computer for rollback/rebuilds. The reduced image size does not automatically reclaim that storage; no existing MongoDB data was deleted.

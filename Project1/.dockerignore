@@ -1,0 +1,12 @@
+.env
+.git
+data/
+output/
+.newsapi-cache/
+*.db
+*.db-wal
+*.db-shm
+app
+*.exe
+*.tar
+*.tar.gz

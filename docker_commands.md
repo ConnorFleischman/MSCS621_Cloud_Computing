@@ -1,65 +1,65 @@
-<!-- Docker commands for building and running the news CLI with MongoDB. -->
 # Docker usage
 
-Run these commands from `Project1`, which contains `go.mod`, `main.go`, `dockerfile`, and `docker-compose.yml`. If your terminal is at the repository root, first run `cd Project1`. Put your NewsAPI key in the existing `.env`:
+Run commands from `Project1` (`cd Project1` from the repository root). Docker builds Go and SQLite together; you do not need Go, a C compiler, or SQLite installed locally.
 
-```dotenv
-NEWSAPI_API_KEY=your_api_key_here
-```
+Create `.env` from `.env.example` if needed, then set `NEWSAPI_API_KEY`. Preserve your existing key if updating an existing file. Replace old Mongo settings with `DATABASE_PATH=./data/news.db` for native runs. Compose uses `/data/news.db` and a persistent named volume automatically.
 
-Compose loads that file at runtime and sets `MONGO_URI` to the `mongodb` service. `MONGO_DATABASE` defaults to `news`. The current Dockerfile copies the project directory, including `.env` if present; `.gitignore` does not exclude files from Docker builds.
-
-The module requires Go 1.25.0 or newer, and the Dockerfile now uses the matching Go 1.25 base image so ordinary Docker builds work without a custom override.
-
-Build the CLI and search (MongoDB starts automatically and must become healthy first):
+Build and search:
 
 ```powershell
-docker build -t project1-go-app .
+docker compose -p project1 build go-app
 docker compose -p project1 run --rm go-app -topic technology -days 2 -articles 5
 ```
 
-Repeat the second command for another search. MongoDB persists cached articles in its named volume. The CLI exits after each search; this is expected.
+Repeat the second command for another search. SQLite stores articles and query coverage in `project1_sqlite-data`; the CLI exits after each search. There is no separate database container.
 
-Save article JSON files in `Project1/output`:
+Save article JSON files on your computer:
 
 ```powershell
 docker compose -p project1 run --rm -v "./output:/app/output" go-app -topic "cloud computing" -days 7 -articles 5 -output /app/output
 ```
 
-Use the local file cache instead of MongoDB, keeping it in `Project1/.newsapi-cache` between runs:
+Run concurrent searches from a batch file:
 
 ```powershell
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= -v "./.newsapi-cache:/app/.newsapi-cache" go-app -topic health -days 7 -articles 5 -cache /app/.newsapi-cache
+docker compose -p project1 run --rm -v "./searches.example.json:/app/searches.example.json:ro" go-app -batch /app/searches.example.json
 ```
 
-The empty `MONGO_URI` overrides Compose's database setting. A `-cache` path alone does not select file caching while `MONGO_URI` is set.
+Use the existing JSON file cache instead of SQLite:
 
-After building the image above, start both services and run the CLI with its default search:
+```powershell
+docker compose -p project1 run --rm -e DATABASE_PATH= -e MONGO_URI= -v "./.newsapi-cache:/app/.newsapi-cache" go-app -topic health -days 7 -articles 5 -cache /app/.newsapi-cache
+```
+
+A `-cache` path alone does not select file caching while `DATABASE_PATH` is set.
+
+Run the default search:
 
 ```powershell
 docker compose -p project1 up --no-build
 ```
 
-Run the existing tests from `tests/` using the Go tool included in the image (rebuild after source or test changes):
+The release image contains no Go compiler or shell. Build the development stage for tests, repeating the build after source changes:
 
 ```powershell
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= --entrypoint go go-app test ./... -v
-docker compose -p project1 run --rm --no-deps -e MONGO_URI= --entrypoint go go-app test ./tests -run 'Test(FetchCachedArticles|ProcessCachedRequests)' -v
+docker build -f dockerfile --target build -t project1-go-build .
+docker run --rm -e DATABASE_PATH= -e MONGO_URI= project1-go-build go test ./... -count=1
+docker run --rm -e DATABASE_PATH= -e MONGO_URI= project1-go-build go test -race ./... -count=1
+docker run --rm -e DATABASE_PATH= -e MONGO_URI= project1-go-build go test ./tests -run TestSQLiteBackedApplicationFlow -v -count=1
 ```
 
-These tests exercise file caching, so they must run with `MONGO_URI` empty. There is currently no `TestMongoCache` integration test.
+Tests use mock API responses and temporary SQLite databases, including the integration tests. No database service or real API key is needed.
 
-Inspect service status or database logs:
+Inspect status and stop services while retaining data:
 
 ```powershell
 docker compose -p project1 ps
-docker compose -p project1 logs mongodb
-```
-
-Stop the services while retaining cached articles:
-
-```powershell
+docker compose -p project1 logs go-app
 docker compose -p project1 down
 ```
 
-For the x64 submission build command, see [Submission notes in the README](README.md#submission-notes).
+`run --rm` logs appear in that command's terminal; removed containers do not retain logs for `compose logs`. Avoid `down -v` unless deleting SQLite data is intentional.
+
+The old MongoDB volume is not converted or removed. The new cache starts empty and refills from NewsAPI. If an old `mongodb` container is still running, `docker stop mongodb` stops it without deleting its data.
+
+See [the README](Project1/README.md) for configuration and [submission commands](Project1/README.md#submission-notes).

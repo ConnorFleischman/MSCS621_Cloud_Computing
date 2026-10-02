@@ -15,15 +15,15 @@ import (
 func TestLoadEnvFileReadsValues(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, ".env")
-	if err := os.WriteFile(path, []byte("NEWSAPI_API_KEY=test-key\nMONGO_DATABASE=test-db\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("NEWSAPI_API_KEY=test-key\nTEST_CONFIG_VALUE=test-db\n"), 0o600); err != nil {
 		t.Fatalf("write env file: %v", err)
 	}
 
 	if err := os.Unsetenv("NEWSAPI_API_KEY"); err != nil {
 		t.Fatalf("unset NEWSAPI_API_KEY: %v", err)
 	}
-	if err := os.Unsetenv("MONGO_DATABASE"); err != nil {
-		t.Fatalf("unset MONGO_DATABASE: %v", err)
+	if err := os.Unsetenv("TEST_CONFIG_VALUE"); err != nil {
+		t.Fatalf("unset TEST_CONFIG_VALUE: %v", err)
 	}
 
 	if err := newsapi.LoadEnvFile(path); err != nil {
@@ -32,8 +32,8 @@ func TestLoadEnvFileReadsValues(t *testing.T) {
 	if got := os.Getenv("NEWSAPI_API_KEY"); got != "test-key" {
 		t.Fatalf("NEWSAPI_API_KEY = %q, want %q", got, "test-key")
 	}
-	if got := os.Getenv("MONGO_DATABASE"); got != "test-db" {
-		t.Fatalf("MONGO_DATABASE = %q, want %q", got, "test-db")
+	if got := os.Getenv("TEST_CONFIG_VALUE"); got != "test-db" {
+		t.Fatalf("TEST_CONFIG_VALUE = %q, want %q", got, "test-db")
 	}
 }
 
