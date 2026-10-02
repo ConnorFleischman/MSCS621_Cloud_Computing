@@ -91,11 +91,8 @@ func TestSQLiteBackedApplicationFlow(t *testing.T) {
 	// Use a mock HTTP transport; SQLite accesses a local temporary file.
 	apiClient := &http.Client{Transport: redirectTransport{target: server.URL, base: http.DefaultTransport}}
 
-	// Use a unique SQLite database for this test; t.TempDir removes it afterward.
 	path := filepath.Join(t.TempDir(), "news.db")
 	t.Setenv("DATABASE_PATH", path)
-
-	// Close the database before its temporary directory is removed.
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		t.Fatal(err)
@@ -239,7 +236,7 @@ func makeArticle(title string, age time.Duration) newsapi.Article {
 	}
 }
 
-// assertArticleCount checks that the number of articles stored in the SQLite articles table for a given topic matches the expected count.
+// assertArticleCount checks that the number of articles stored in the SQLite collection for a given topic matches the expected count.
 func assertArticleCount(t *testing.T, db *sql.DB, topic string, want int64) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
