@@ -2,6 +2,9 @@
 
 This project is a Go-based news search app that fetches stories from NewsAPI, caches results, and stores articles and query coverage in embedded SQLite when configured. Docker runs a single application container; no database server or local SQLite installation is needed.
 
+# Credits
+This project was built for class MSCS 621N Cloud Computing, at Marist University during the Fall 2026 Semester. The original instructions can be found under the docs folder, titled "mscs621fa26Proj1.pdf".
+
 ## Project 1 Guidelines
 - 3 weeks for project
 - Write in Go code, follow AI rules in syllabus
