@@ -1,0 +1,180 @@
+{
+  "image": "project1-metrics:latest",
+  "image_id": "sha256:6c54e259082b818df909da82c76bf909e99e12f51873c1b0c327d7b809401c03",
+  "docker_inspect_size_bytes": 5277856,
+  "image_descriptor": {
+    "mediaType": "application/vnd.oci.image.index.v1+json",
+    "digest": "sha256:6c54e259082b818df909da82c76bf909e99e12f51873c1b0c327d7b809401c03",
+    "size": 856
+  },
+  "repo_digests": [
+    "project1-metrics@sha256:6c54e259082b818df909da82c76bf909e99e12f51873c1b0c327d7b809401c03"
+  ],
+  "platform": "linux/amd64",
+  "docker_version": {
+    "Client": {
+      "Version": "29.8.0",
+      "ApiVersion": "1.56",
+      "DefaultAPIVersion": "1.56",
+      "GitCommit": "88096ef",
+      "GoVersion": "go1.26.8",
+      "Os": "windows",
+      "Arch": "amd64",
+      "BuildTime": "Thu Sep  3 21:53:38 2026",
+      "Context": "desktop-linux"
+    },
+    "Server": {
+      "Platform": {
+        "Name": "Docker Desktop 4.91.0 (239619)"
+      },
+      "Version": "29.8.0",
+      "ApiVersion": "1.56",
+      "MinAPIVersion": "1.40",
+      "Os": "linux",
+      "Arch": "amd64",
+      "Components": [
+        {
+          "Name": "Engine",
+          "Version": "29.8.0",
+          "Details": {
+            "ApiVersion": "1.56",
+            "Arch": "amd64",
+            "BuildTime": "Thu Sep  3 21:51:20 2026",
+            "Experimental": "false",
+            "GitCommit": "3ce5872",
+            "GoVersion": "go1.26.8",
+            "KernelVersion": "6.18.40.1-microsoft-standard-WSL2",
+            "MinAPIVersion": "1.40",
+            "Module": "github.com/moby/moby/v2",
+            "ModuleVersion": "v2.0.0+unknown",
+            "Os": "linux"
+          }
+        },
+        {
+          "Name": "containerd",
+          "Version": "v2.3.4",
+          "Details": {
+            "GitCommit": "db8809540e1a7a9da5d518876894933ff55692ab"
+          }
+        },
+        {
+          "Name": "runc",
+          "Version": "1.4.3",
+          "Details": {
+            "GitCommit": "v1.4.3-0-gbb14dabe"
+          }
+        },
+        {
+          "Name": "docker-init",
+          "Version": "0.19.0",
+          "Details": {
+            "GitCommit": "de40ad0"
+          }
+        }
+      ],
+      "GitCommit": "3ce5872",
+      "GoVersion": "go1.26.8",
+      "KernelVersion": "6.18.40.1-microsoft-standard-WSL2",
+      "BuildTime": "2026-09-03T21:51:20.000000000+00:00"
+    }
+  },
+  "docker_vm_cpus": 12,
+  "docker_vm_memory_bytes": 8243367936,
+  "host_os": "Windows-10-10.0.19045-SP0",
+  "host_processor": "Intel64 Family 6 Model 158 Stepping 10, GenuineIntel",
+  "builder_versions_and_executable_bytes": "go version go1.25.14 linux/amd64\ngcc (Alpine 15.2.0) 15.2.0\nupx 5.2.0\n2470712 /app/app\n",
+  "source_commit": "bedaed13fe21b115e9fbcb042a6a16e2517a37e6",
+  "source_note": "working tree includes the metrics harness and report changes",
+  "docker_save_archive_bytes": 2595328,
+  "gzip_save_archive_bytes": 2581395,
+  "saved_layer_blob_bytes": 2576313,
+  "image_size_scope": "Docker inspect Size is the local store accounting on this engine; save/gzip sizes describe exports, not unpacked executable size. Build caches and database data are excluded.",
+  "release_container_cache_hit_ms": [
+    637.5174000022525,
+    571.8269999997574,
+    612.0000000009895,
+    629.8820000010892,
+    699.9987999988662
+  ],
+  "release_smoke": "six separate network-disabled containers reused SQLite; five measured after one warmup",
+  "container_timing_scope": "host wall clock including Docker client, container creation/removal, packed executable startup, SQLite lookup, and printed output",
+  "packed_process_time_verbose": [
+    "\tCommand being timed: \"/app/app -topic runtime-smoke -days 1 -articles 5\"\n\tUser time (seconds): 0.24\n\tSystem time (seconds): 0.01\n\tPercent of CPU this job got: 89%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0m 0.28s\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 8016\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 1\n\tMinor (reclaiming a frame) page faults: 2309\n\tVoluntary context switches: 276\n\tInvoluntary context switches: 4\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 0\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "\tCommand being timed: \"/app/app -topic runtime-smoke -days 1 -articles 5\"\n\tUser time (seconds): 0.23\n\tSystem time (seconds): 0.02\n\tPercent of CPU this job got: 88%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0m 0.29s\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 7888\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 1\n\tMinor (reclaiming a frame) page faults: 2275\n\tVoluntary context switches: 274\n\tInvoluntary context switches: 4\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 0\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "\tCommand being timed: \"/app/app -topic runtime-smoke -days 1 -articles 5\"\n\tUser time (seconds): 0.29\n\tSystem time (seconds): 0.01\n\tPercent of CPU this job got: 92%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0m 0.34s\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 8016\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 1\n\tMinor (reclaiming a frame) page faults: 2307\n\tVoluntary context switches: 270\n\tInvoluntary context switches: 0\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 0\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "\tCommand being timed: \"/app/app -topic runtime-smoke -days 1 -articles 5\"\n\tUser time (seconds): 0.26\n\tSystem time (seconds): 0.00\n\tPercent of CPU this job got: 92%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0m 0.29s\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 8016\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 1\n\tMinor (reclaiming a frame) page faults: 2295\n\tVoluntary context switches: 278\n\tInvoluntary context switches: 4\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 0\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+    "\tCommand being timed: \"/app/app -topic runtime-smoke -days 1 -articles 5\"\n\tUser time (seconds): 0.23\n\tSystem time (seconds): 0.01\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0m 0.27s\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 8016\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 1\n\tMinor (reclaiming a frame) page faults: 2300\n\tVoluntary context switches: 272\n\tInvoluntary context switches: 2\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 0\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n"
+  ],
+  "peak_rss_kib": [
+    8016,
+    7888,
+    8016,
+    8016,
+    8016
+  ],
+  "process_timing_scope": "packed release executable inside development container; excludes Docker startup; /usr/bin/time values are coarse",
+  "test_results": {
+    "pass": 57,
+    "fail": 0,
+    "skip": 0,
+    "packages": [
+      {
+        "Package": "go-mongo-docker/cmd/metrics",
+        "Action": "skip",
+        "Elapsed": 0.045
+      },
+      {
+        "Package": "go-mongo-docker/models",
+        "Action": "skip",
+        "Elapsed": 0.009
+      },
+      {
+        "Package": "go-mongo-docker/tests",
+        "Action": "pass",
+        "Elapsed": 0.188
+      },
+      {
+        "Package": "go-mongo-docker/newsapi",
+        "Action": "pass",
+        "Elapsed": 0.448
+      },
+      {
+        "Package": "go-mongo-docker",
+        "Action": "pass",
+        "Elapsed": 1.299
+      }
+    ]
+  },
+  "race_results": {
+    "pass": 57,
+    "fail": 0,
+    "skip": 0,
+    "packages": [
+      {
+        "Package": "go-mongo-docker/cmd/metrics",
+        "Action": "skip",
+        "Elapsed": 0.001
+      },
+      {
+        "Package": "go-mongo-docker/models",
+        "Action": "skip",
+        "Elapsed": 0.003
+      },
+      {
+        "Package": "go-mongo-docker/tests",
+        "Action": "pass",
+        "Elapsed": 1.154
+      },
+      {
+        "Package": "go-mongo-docker/newsapi",
+        "Action": "pass",
+        "Elapsed": 2.41
+      },
+      {
+        "Package": "go-mongo-docker",
+        "Action": "pass",
+        "Elapsed": 69.059
+      }
+    ]
+  }
+}
