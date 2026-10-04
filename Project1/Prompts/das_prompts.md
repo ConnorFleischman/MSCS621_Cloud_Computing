@@ -24,13 +24,14 @@
 - Indicate whether results came from cache or News API.
 - Handle missing fields without broken output. 
 7. (GPT-6 Luna) Reconfigure project to have all unit tests put in the same directory as the file they are testing, and ensure the test itself works with this new configuration
-8. Test the complete application flow with MongoDB and a mock News API, acceptance criteria:
+8. (GPT-6 Luna) Test the complete application flow with MongoDB and a mock News API, acceptance criteria:
 - Test first search, API retrieval, and persistence.
 - Test repeated search from MongoDB.
 - Test expanded date and article-limit requests.
 - Test concurrent searches.
 - Keep production credentials out of tests
-9. Look into ways we can reduce the size of the docker image for this project. Come back with 3 solutions, and what changes, if any, are required. 
-10. Implement "Multi-stage build with an Alpine runtime" solution, and give new docker command instructions that would fit with this new configuration, if needed. 
-11. Review the assignment guidelines and highlight any major issues with the code itself.
-12. Fix issues with cache and concurrency (issues mentioned in response to previous prompt)
+9. (GPT-6 Luna) Look into ways we can reduce the size of the docker image for this project. Come back with 3 solutions, and what changes, if any, are required. 
+10. (GPT-6 Luna) Implement "Multi-stage build with an Alpine runtime" solution, and give new docker command instructions that would fit with this new configuration, if needed. 
+11. (GPT-6.1 Sol) Review the assignment guidelines and highlight any major issues with the code itself.
+12. (GPT-6.1 Sol) Fix issues with cache and concurrency (issues mentioned in response to previous prompt)
+13. (GPT-6.1 Sol) Convert the project to utilize sqlite instead of mongodb, while keeping the commands and functionality the same, as well as reducing the overall docker image size.
