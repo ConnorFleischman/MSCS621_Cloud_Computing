@@ -9,9 +9,10 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Short native waits let context deadlines interrupt contention between processes.
@@ -85,8 +86,15 @@ func retrySQLite(ctx context.Context, operation func() error) error {
 			return err
 		}
 		err := operation()
-		var sqliteErr sqlite3.Error
-		if !errors.As(err, &sqliteErr) || (sqliteErr.Code != sqlite3.ErrBusy && sqliteErr.Code != sqlite3.ErrLocked) {
+		if err == nil {
+			return nil
+		}
+		msg := strings.ToLower(err.Error())
+		busy := strings.Contains(msg, "database is locked") ||
+			strings.Contains(msg, "database table is locked") ||
+			strings.Contains(msg, "database is busy") ||
+			strings.Contains(msg, "database schema is locked")
+		if !busy {
 			return err
 		}
 		select {
