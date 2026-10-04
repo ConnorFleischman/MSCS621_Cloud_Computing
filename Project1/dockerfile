@@ -1,5 +1,8 @@
 FROM golang:1.25-alpine AS build
 
+# SQLite is compiled into the executable; these tools stay in the builder.
+RUN apk add --no-cache build-base ca-certificates upx
+
 WORKDIR /app
 
 # Download dependencies
@@ -8,11 +11,15 @@ RUN go mod download
 
 # Build the actual project entrypoint, which uses the cache-aware NewsAPI flow.
 COPY . .
-RUN CGO_ENABLED=0 go build -o app .
+RUN CGO_ENABLED=1 CGO_CFLAGS="-Oz -ffunction-sections -fdata-sections" go build -trimpath -tags "netgo osusergo sqlite_omit_load_extension" -ldflags='-s -w -linkmode external -extldflags "-static -Wl,--gc-sections"' -o app .
+ARG COMPRESS=1
+RUN if [ "$COMPRESS" = "1" ]; then upx --best --lzma app && upx -t app; fi
+RUN mkdir -p /runtime/app /runtime/data /runtime/tmp && chmod 1777 /runtime/tmp
 
 # Ship only the executable and the certificates needed for HTTPS.
-FROM alpine:3.24
-RUN apk add --no-cache ca-certificates
+FROM scratch
+COPY --from=build /runtime/ /
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 WORKDIR /app
 COPY --from=build /app/app ./app
 

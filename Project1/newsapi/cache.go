@@ -2,6 +2,7 @@ package newsapi
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,9 +11,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const cacheLifetime = 15 * time.Minute
@@ -123,15 +121,18 @@ func FetchCachedArticles(dir string, req Request) ([]Article, error) {
 
 // FetchCachedArticlesWithSource reports whether filling the result required a NewsAPI request.
 func FetchCachedArticlesWithSource(dir string, req Request) ([]Article, bool, error) {
-	if uri := os.Getenv("MONGO_URI"); uri != "" {
-		return fetchMongoArticles(uri, req)
+	if path := os.Getenv("DATABASE_PATH"); path != "" {
+		return fetchSQLiteArticles(path, req)
+	}
+	if os.Getenv("MONGO_URI") != "" {
+		return nil, false, fmt.Errorf("MongoDB is no longer supported: set DATABASE_PATH for SQLite and remove MONGO_URI")
 	}
 	return fetchCachedArticles(dir, req, time.Now().UTC(), FetchArticles)
 }
 
 // fetchCachedArticles serializes only matching queries and rechecks each caller's
 // limit after acquiring the lock. Network calls for unrelated searches overlap.
-func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*mongo.Database) ([]Article, bool, error) {
+func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Request) ([]Article, error), db ...*sql.DB) ([]Article, bool, error) {
 	req.Topic, req.Country = strings.ToLower(strings.Join(strings.Fields(req.Topic), " ")), strings.ToLower(strings.TrimSpace(req.Country))
 	if req.Country == "" {
 		req.Country = "us"
@@ -154,7 +155,7 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 	var cache articleCache
 	if len(db) > 0 {
 		var err error
-		cache, err = loadMongoCache(db[0], req, from, to)
+		cache, err = loadSQLiteCache(db[0], req, from, to)
 		if err != nil {
 			return nil, false, err
 		}
@@ -203,7 +204,7 @@ func fetchCachedArticles(dir string, req Request, now time.Time, fetch func(Requ
 	cache.From, cache.To = from, to
 	cache.FetchedAt, cache.RequestedLimit = now, req.Limit
 	if len(db) > 0 {
-		if err := saveMongoCache(db[0], req, cache); err != nil {
+		if err := saveSQLiteCache(db[0], req, cache); err != nil {
 			return nil, false, err
 		}
 	} else {
@@ -252,12 +253,16 @@ func mergeArticles(cached, fresh []Article) []Article {
 	return merged
 }
 
-// articleKey uses URL identity or a content hash stable across BSON timestamp rounding.
+// articleKey uses URL identity or a content hash stable across millisecond timestamp rounding.
 func articleKey(article Article) string {
 	if article.URL != "" {
 		return article.URL
 	}
-	data, _ := bson.Marshal(article)
+	if article.PublishedAt != nil {
+		stamp := article.PublishedAt.UTC().Truncate(time.Millisecond)
+		article.PublishedAt = &stamp
+	}
+	data, _ := json.Marshal(article)
 	return fmt.Sprintf("content:%x", sha256.Sum256(data))
 }
 

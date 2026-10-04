@@ -2,21 +2,20 @@ package integration_test
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"go-mongo-docker/newsapi"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // redirectTransport is an http.RoundTripper that rewrites the request URL to a different target host.
@@ -36,14 +35,7 @@ func (transport redirectTransport) RoundTrip(request *http.Request) (*http.Respo
 	return transport.base.RoundTrip(redirected)
 }
 
-func TestMongoBackedApplicationFlow(t *testing.T) {
-	// Skip the test if MONGO_TEST_URI is not set, as it requires a live MongoDB instance.
-	uri := os.Getenv("MONGO_TEST_URI")
-	if uri == "" {
-		t.Skip("set MONGO_TEST_URI to run the MongoDB integration test")
-	}
-
-	// Ensure the MongoDB server is reachable before running the test.
+func TestSQLiteBackedApplicationFlow(t *testing.T) {
 	serverCalls := atomic.Int32{}
 	parallelCalls := atomic.Int32{}
 	parallelReady := make(chan struct{})
@@ -61,7 +53,7 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 			select {
 			case <-parallelReady:
 			case <-time.After(3 * time.Second):
-				http.Error(w, "independent MongoDB searches did not overlap", http.StatusGatewayTimeout)
+				http.Error(w, "independent SQLite searches did not overlap", http.StatusGatewayTimeout)
 				return
 			}
 		}
@@ -96,28 +88,16 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Inject the mock only into NewsAPI requests; MongoDB keeps its own transport.
+	// Use a mock HTTP transport; SQLite accesses a local temporary file.
 	apiClient := &http.Client{Transport: redirectTransport{target: server.URL, base: http.DefaultTransport}}
 
-	// Set up a unique MongoDB database for this test to avoid conflicts with other tests or data.
-	databaseName := fmt.Sprintf("news_integration_%d", time.Now().UnixNano())
-	t.Setenv("MONGO_URI", uri)
-	t.Setenv("MONGO_DATABASE", databaseName)
-
-	// Connect to the MongoDB server and ensure the test database is dropped after the test completes.
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	path := filepath.Join(t.TempDir(), "news.db")
+	t.Setenv("DATABASE_PATH", path)
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Disconnect(context.Background())
-	db := client.Database(databaseName)
-	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := db.Drop(ctx); err != nil {
-			t.Errorf("drop integration database: %v", err)
-		}
-	}()
+	defer db.Close()
 
 	// Run a series of requests to test the full application flow, including caching behavior and concurrent requests.
 	request := newsapi.Request{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "flow", Days: 3, Limit: 1}
@@ -127,13 +107,13 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	}
 	assertArticleCount(t, db, "flow", 1)
 
-	// Repeat the same request to verify that the result is served from the MongoDB cache and does not trigger an API call.
+	// Repeat the same request to verify that the result is served from the SQLite cache and does not trigger an API call.
 	items, fromAPI, err = newsapi.FetchCachedArticlesWithSource("", request)
 	if err != nil || fromAPI || len(items) != 1 || serverCalls.Load() != 1 {
-		t.Fatalf("repeat search should use MongoDB: got %d articles, fromAPI=%t, API calls=%d, err=%v", len(items), fromAPI, serverCalls.Load(), err)
+		t.Fatalf("repeat search should use SQLite: got %d articles, fromAPI=%t, API calls=%d, err=%v", len(items), fromAPI, serverCalls.Load(), err)
 	}
 
-	// Expand the article limit to verify that additional articles are fetched from the API and stored in the MongoDB cache.
+	// Expand the article limit to verify that additional articles are fetched from the API and stored in the SQLite cache.
 	request.Limit = 3
 	items, fromAPI, err = newsapi.FetchCachedArticlesWithSource("", request)
 	if err != nil || !fromAPI || len(items) != 3 {
@@ -141,7 +121,7 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	}
 	assertArticleCount(t, db, "flow", 3)
 
-	// Expand the date range to verify that older articles are fetched from the API and stored in the MongoDB cache.
+	// Expand the date range to verify that older articles are fetched from the API and stored in the SQLite cache.
 	request.Days, request.Limit = 7, 4
 	items, fromAPI, err = newsapi.FetchCachedArticlesWithSource("", request)
 	if err != nil || !fromAPI || len(items) != 4 {
@@ -152,7 +132,7 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	}
 	assertArticleCount(t, db, "flow", 4)
 
-	// Test concurrent requests to verify that the application can handle multiple requests in parallel and that the MongoDB cache is used appropriately.
+	// Test concurrent requests to verify that the application can handle multiple requests in parallel and that the SQLite cache is used appropriately.
 	requests := []newsapi.Request{
 		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "parallel-a", Days: 1, Limit: 1},
 		{HTTPClient: apiClient, APIKey: "integration-test-key", Topic: "parallel-b", Days: 1, Limit: 1},
@@ -228,12 +208,12 @@ func TestMongoBackedApplicationFlow(t *testing.T) {
 	assertArticleCount(t, db, "overlap", 1)
 
 	// Expired exhaustion metadata must allow fresh news to be discovered.
-	_, err = db.Collection("coverage").UpdateMany(context.Background(), bson.M{"topic": "short"}, bson.M{"$set": bson.M{"fetchedat": time.Now().Add(-time.Hour)}})
+	_, err = db.Exec("UPDATE coverage SET fetched_at=? WHERE topic=?", time.Now().Add(-time.Hour).UnixMilli(), "short")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, api, err := newsapi.FetchCachedArticlesWithSource("", short); err != nil || !api {
-		t.Fatalf("expired Mongo cache: api=%t err=%v", api, err)
+		t.Fatalf("expired SQLite cache: api=%t err=%v", api, err)
 	}
 }
 
@@ -256,12 +236,13 @@ func makeArticle(title string, age time.Duration) newsapi.Article {
 	}
 }
 
-// assertArticleCount checks that the number of articles stored in the MongoDB collection for a given topic matches the expected count.
-func assertArticleCount(t *testing.T, db *mongo.Database, topic string, want int64) {
+// assertArticleCount checks that the number of articles stored in the SQLite collection for a given topic matches the expected count.
+func assertArticleCount(t *testing.T, db *sql.DB, topic string, want int64) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	got, err := db.Collection("articles").CountDocuments(ctx, bson.M{"topic": topic})
+	var got int64
+	err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM articles WHERE topic=?", topic).Scan(&got)
 	if err != nil || got != want {
 		t.Fatalf("persisted article count for %q = %d, want %d (err=%v)", topic, got, want, err)
 	}
