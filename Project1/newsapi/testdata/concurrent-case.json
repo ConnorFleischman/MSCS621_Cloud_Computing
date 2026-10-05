@@ -1,0 +1,29 @@
+{
+  "requests": [
+    {
+      "topic": "alpha",
+      "days": 1,
+      "articles": 1
+    },
+    {
+      "topic": "beta",
+      "days": 2,
+      "articles": 1
+    }
+  ],
+  "expected": {
+    "max_concurrent": 2,
+    "results": [
+      {
+        "topic": "alpha",
+        "source": "News API",
+        "titles": ["alpha result"]
+      },
+      {
+        "topic": "beta",
+        "source": "News API",
+        "titles": ["beta result"]
+      }
+    ]
+  }
+}

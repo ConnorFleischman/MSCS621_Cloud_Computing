@@ -1,25 +1,15 @@
-version: '3.8'
-
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=secret
-    volumes:
-      - mongo-data:/data/db
-
   go-app:
     build: .
     container_name: go-app
+    env_file:
+      - ./.env
     environment:
-      # Connect using the mongodb container name rather than localhost
-      - MONGO_URI=mongodb://admin:secret@mongodb:27017/
-    depends_on:
-      - mongodb
+      - DATABASE_PATH=/data/news.db
+      # Ignore a legacy host setting; SQLite is the container's database.
+      - MONGO_URI=
+    volumes:
+      - sqlite-data:/data
 
 volumes:
-  mongo-data:
+  sqlite-data:
