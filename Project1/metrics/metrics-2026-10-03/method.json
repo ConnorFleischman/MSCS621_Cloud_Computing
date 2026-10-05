@@ -1,0 +1,12 @@
+{
+  "articles_per_request": 5,
+  "measured_repetitions": 5,
+  "mock_delay_ms": 50,
+  "percentile_method": "nearest rank over 100 operation samples",
+  "request_timing": "public FetchCachedArticlesWithSource including database open/close; schema initialization excluded",
+  "requests_per_repetition": 20,
+  "response_bytes": 680,
+  "throughput_timing": "sum of measured fan-out wave durations; CSV writing and warmup excluded",
+  "timestamp_utc": "2026-10-03T17:35:21Z",
+  "warmup_repetitions": 1
+}

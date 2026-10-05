@@ -3,14 +3,13 @@ package main_test
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func TestCLIRejectsInvalidDays(t *testing.T) {
 	cmd := exec.Command("go", "run", ".", "-topic", "cloud computing", "-days", "0", "-articles", "1")
-	cmd.Dir = filepath.Join("..")
+	cmd.Dir = "."
 	cmd.Env = append(os.Environ(), "NEWSAPI_API_KEY=dummy")
 
 	output, err := cmd.CombinedOutput()

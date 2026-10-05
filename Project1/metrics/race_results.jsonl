@@ -1,0 +1,301 @@
+{"Time":"2026-10-03T17:32:47.144530661Z","Action":"start","Package":"go-mongo-docker"}
+{"Time":"2026-10-03T17:32:47.145533827Z","Action":"start","Package":"go-mongo-docker/cmd/metrics"}
+{"Time":"2026-10-03T17:32:47.146255375Z","Action":"output","Package":"go-mongo-docker/cmd/metrics","Output":"?   \tgo-mongo-docker/cmd/metrics\t[no test files]\n"}
+{"Time":"2026-10-03T17:32:47.147003125Z","Action":"skip","Package":"go-mongo-docker/cmd/metrics","Elapsed":0.001}
+{"Time":"2026-10-03T17:32:47.146370283Z","Action":"start","Package":"go-mongo-docker/models"}
+{"Time":"2026-10-03T17:32:47.148457221Z","Action":"output","Package":"go-mongo-docker/models","Output":"?   \tgo-mongo-docker/models\t[no test files]\n"}
+{"Time":"2026-10-03T17:32:47.149106264Z","Action":"skip","Package":"go-mongo-docker/models","Elapsed":0.003}
+{"Time":"2026-10-03T17:32:47.156291439Z","Action":"run","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate"}
+{"Time":"2026-10-03T17:32:47.157005186Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"=== RUN   TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate\n"}
+{"Time":"2026-10-03T17:32:47.160343807Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.160965048Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Search 2: beta\n"}
+{"Time":"2026-10-03T17:32:47.16144718Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Fetched 1 of 2 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.161944913Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Results: News API\n"}
+{"Time":"2026-10-03T17:32:47.162415244Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Only 1 of 2 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.162916377Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.163376208Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"1. beta\n"}
+{"Time":"2026-10-03T17:32:47.163875741Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.164631791Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Saved article documents to /tmp/TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate4239124043/001/output/search_002\n"}
+{"Time":"2026-10-03T17:32:47.165327437Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.165842171Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Search 1: alpha\n"}
+{"Time":"2026-10-03T17:32:47.166316902Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Fetched 1 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.166777433Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Results: News API\n"}
+{"Time":"2026-10-03T17:32:47.167316568Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.167853104Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"1. alpha\n"}
+{"Time":"2026-10-03T17:32:47.168422041Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.168994579Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"Saved article documents to /tmp/TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate4239124043/001/output/search_001\n"}
+{"Time":"2026-10-03T17:32:47.16946321Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Output":"--- PASS: TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.169920941Z","Action":"pass","Package":"go-mongo-docker","Test":"TestBatchCLIOverlapsSearchesAndKeepsOutputsSeparate","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.170342168Z","Action":"run","Package":"go-mongo-docker","Test":"TestBatchRejectsInvalidInputBeforeFetching"}
+{"Time":"2026-10-03T17:32:47.170713793Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchRejectsInvalidInputBeforeFetching","Output":"=== RUN   TestBatchRejectsInvalidInputBeforeFetching\n"}
+{"Time":"2026-10-03T17:32:47.171167723Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchRejectsInvalidInputBeforeFetching","Output":"--- PASS: TestBatchRejectsInvalidInputBeforeFetching (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.171675557Z","Action":"pass","Package":"go-mongo-docker","Test":"TestBatchRejectsInvalidInputBeforeFetching","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.172159589Z","Action":"run","Package":"go-mongo-docker","Test":"TestInvalidBatchFixture"}
+{"Time":"2026-10-03T17:32:47.172558715Z","Action":"output","Package":"go-mongo-docker","Test":"TestInvalidBatchFixture","Output":"=== RUN   TestInvalidBatchFixture\n"}
+{"Time":"2026-10-03T17:32:47.17293504Z","Action":"output","Package":"go-mongo-docker","Test":"TestInvalidBatchFixture","Output":"--- PASS: TestInvalidBatchFixture (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.173366868Z","Action":"pass","Package":"go-mongo-docker","Test":"TestInvalidBatchFixture","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.173791497Z","Action":"run","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidInputBeforeFetching"}
+{"Time":"2026-10-03T17:32:47.174182622Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidInputBeforeFetching","Output":"=== RUN   TestCLIRejectsInvalidInputBeforeFetching\n"}
+{"Time":"2026-10-03T17:32:47.176298662Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidInputBeforeFetching","Output":"--- PASS: TestCLIRejectsInvalidInputBeforeFetching (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.176744092Z","Action":"pass","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidInputBeforeFetching","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.177209423Z","Action":"run","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher"}
+{"Time":"2026-10-03T17:32:47.177613949Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Output":"=== RUN   TestCLIValidInputReachesFetcher\n"}
+{"Time":"2026-10-03T17:32:47.178250892Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Output":"Fetched 0 of 3 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.178737724Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.179201554Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Output":"Only 0 of 3 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.179667885Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Output":"No articles returned for this query.\n"}
+{"Time":"2026-10-03T17:32:47.180082513Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Output":"--- PASS: TestCLIValidInputReachesFetcher (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.180982072Z","Action":"pass","Package":"go-mongo-docker","Test":"TestCLIValidInputReachesFetcher","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.181480305Z","Action":"run","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput"}
+{"Time":"2026-10-03T17:32:47.181976038Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"=== RUN   TestBatchReportsFailureAndPreservesSuccessfulOutput\n"}
+{"Time":"2026-10-03T17:32:47.182420067Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.182844295Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"Search 1: ok\n"}
+{"Time":"2026-10-03T17:32:47.183466337Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"Fetched 1 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.184098078Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.184589111Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.185157448Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"1. ok\n"}
+{"Time":"2026-10-03T17:32:47.185804691Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"\n"}
+{"Time":"2026-10-03T17:32:47.186318725Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"Saved article documents to /tmp/TestBatchReportsFailureAndPreservesSuccessfulOutput1214532427/001/search_001\n"}
+{"Time":"2026-10-03T17:32:47.186925565Z","Action":"output","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Output":"--- PASS: TestBatchReportsFailureAndPreservesSuccessfulOutput (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.187359194Z","Action":"pass","Package":"go-mongo-docker","Test":"TestBatchReportsFailureAndPreservesSuccessfulOutput","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.187819024Z","Action":"run","Package":"go-mongo-docker","Test":"TestPrintArticlesIncludesAvailableFieldsAndShortage"}
+{"Time":"2026-10-03T17:32:47.188281755Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesIncludesAvailableFieldsAndShortage","Output":"=== RUN   TestPrintArticlesIncludesAvailableFieldsAndShortage\n"}
+{"Time":"2026-10-03T17:32:47.188746586Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesIncludesAvailableFieldsAndShortage","Output":"--- PASS: TestPrintArticlesIncludesAvailableFieldsAndShortage (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.189210817Z","Action":"pass","Package":"go-mongo-docker","Test":"TestPrintArticlesIncludesAvailableFieldsAndShortage","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.18971985Z","Action":"run","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput"}
+{"Time":"2026-10-03T17:32:47.19016988Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput","Output":"=== RUN   TestPrintArticlesGoldenOutput\n"}
+{"Time":"2026-10-03T17:32:47.190584307Z","Action":"run","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-hit.txt"}
+{"Time":"2026-10-03T17:32:47.190983334Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-hit.txt","Output":"=== RUN   TestPrintArticlesGoldenOutput/cache-hit.txt\n"}
+{"Time":"2026-10-03T17:32:47.191426363Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-hit.txt","Output":"--- PASS: TestPrintArticlesGoldenOutput/cache-hit.txt (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.191875393Z","Action":"pass","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-hit.txt","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.192460731Z","Action":"run","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-miss.txt"}
+{"Time":"2026-10-03T17:32:47.193012568Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-miss.txt","Output":"=== RUN   TestPrintArticlesGoldenOutput/cache-miss.txt\n"}
+{"Time":"2026-10-03T17:32:47.1934997Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-miss.txt","Output":"--- PASS: TestPrintArticlesGoldenOutput/cache-miss.txt (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.193973132Z","Action":"pass","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput/cache-miss.txt","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.194480165Z","Action":"output","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput","Output":"--- PASS: TestPrintArticlesGoldenOutput (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.194990999Z","Action":"pass","Package":"go-mongo-docker","Test":"TestPrintArticlesGoldenOutput","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.195586938Z","Action":"run","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration"}
+{"Time":"2026-10-03T17:32:47.196100372Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration","Output":"=== RUN   TestDatabaseTimeoutConfiguration\n"}
+{"Time":"2026-10-03T17:32:47.196577504Z","Action":"run","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default"}
+{"Time":"2026-10-03T17:32:47.197140441Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Output":"=== RUN   TestDatabaseTimeoutConfiguration/default\n"}
+{"Time":"2026-10-03T17:32:47.197795584Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Output":"Fetched 0 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.19834132Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.198905758Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Output":"Only 0 of 1 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.199481596Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Output":"No articles returned for this query.\n"}
+{"Time":"2026-10-03T17:32:47.200119138Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Output":"--- PASS: TestDatabaseTimeoutConfiguration/default (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.200628672Z","Action":"pass","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/default","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.201111504Z","Action":"run","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag"}
+{"Time":"2026-10-03T17:32:47.201574134Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Output":"=== RUN   TestDatabaseTimeoutConfiguration/legacy_flag\n"}
+{"Time":"2026-10-03T17:32:47.202018264Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Output":"Fetched 0 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.202467493Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.20302313Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Output":"Only 0 of 1 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.203501662Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Output":"No articles returned for this query.\n"}
+{"Time":"2026-10-03T17:32:47.203999395Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Output":"--- PASS: TestDatabaseTimeoutConfiguration/legacy_flag (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.204430323Z","Action":"pass","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_flag","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.204874553Z","Action":"run","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins"}
+{"Time":"2026-10-03T17:32:47.20543449Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Output":"=== RUN   TestDatabaseTimeoutConfiguration/new_flag_wins\n"}
+{"Time":"2026-10-03T17:32:47.205906721Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Output":"Fetched 0 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.206297747Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.20665387Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Output":"Only 0 of 1 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.207085499Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Output":"No articles returned for this query.\n"}
+{"Time":"2026-10-03T17:32:47.20754923Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Output":"--- PASS: TestDatabaseTimeoutConfiguration/new_flag_wins (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.207989559Z","Action":"pass","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_flag_wins","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.208475091Z","Action":"run","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins"}
+{"Time":"2026-10-03T17:32:47.208991925Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Output":"=== RUN   TestDatabaseTimeoutConfiguration/new_environment_wins\n"}
+{"Time":"2026-10-03T17:32:47.209459856Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Output":"Fetched 0 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.209911286Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.21043262Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Output":"Only 0 of 1 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.21087835Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Output":"No articles returned for this query.\n"}
+{"Time":"2026-10-03T17:32:47.211346281Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Output":"--- PASS: TestDatabaseTimeoutConfiguration/new_environment_wins (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.21178511Z","Action":"pass","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/new_environment_wins","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.212304344Z","Action":"run","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment"}
+{"Time":"2026-10-03T17:32:47.212870582Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Output":"=== RUN   TestDatabaseTimeoutConfiguration/legacy_environment\n"}
+{"Time":"2026-10-03T17:32:47.213429219Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Output":"Fetched 0 of 1 requested article(s)\n"}
+{"Time":"2026-10-03T17:32:47.213873148Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Output":"Results: cache\n"}
+{"Time":"2026-10-03T17:32:47.214366881Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Output":"Only 0 of 1 requested article(s) were available.\n"}
+{"Time":"2026-10-03T17:32:47.214861713Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Output":"No articles returned for this query.\n"}
+{"Time":"2026-10-03T17:32:47.215439151Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Output":"--- PASS: TestDatabaseTimeoutConfiguration/legacy_environment (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.215964086Z","Action":"pass","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration/legacy_environment","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.216376713Z","Action":"output","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration","Output":"--- PASS: TestDatabaseTimeoutConfiguration (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.216884247Z","Action":"pass","Package":"go-mongo-docker","Test":"TestDatabaseTimeoutConfiguration","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.217406582Z","Action":"run","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidDays"}
+{"Time":"2026-10-03T17:32:47.217904815Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidDays","Output":"=== RUN   TestCLIRejectsInvalidDays\n"}
+{"Time":"2026-10-03T17:32:47.615176693Z","Action":"start","Package":"go-mongo-docker/newsapi"}
+{"Time":"2026-10-03T17:32:47.61618466Z","Action":"start","Package":"go-mongo-docker/tests"}
+{"Time":"2026-10-03T17:32:47.631621081Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestCacheMissFixture"}
+{"Time":"2026-10-03T17:32:47.632556643Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheMissFixture","Output":"=== RUN   TestCacheMissFixture\n"}
+{"Time":"2026-10-03T17:32:47.633320994Z","Action":"run","Package":"go-mongo-docker/tests","Test":"TestSQLiteBackedApplicationFlow"}
+{"Time":"2026-10-03T17:32:47.634134247Z","Action":"output","Package":"go-mongo-docker/tests","Test":"TestSQLiteBackedApplicationFlow","Output":"=== RUN   TestSQLiteBackedApplicationFlow\n"}
+{"Time":"2026-10-03T17:32:47.641766852Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheMissFixture","Output":"--- PASS: TestCacheMissFixture (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.643003434Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestCacheMissFixture","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.643809687Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestCacheHitFixture"}
+{"Time":"2026-10-03T17:32:47.644614641Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheHitFixture","Output":"=== RUN   TestCacheHitFixture\n"}
+{"Time":"2026-10-03T17:32:47.650092303Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheHitFixture","Output":"--- PASS: TestCacheHitFixture (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.650842253Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestCacheHitFixture","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.651676408Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestIndependentCacheMissesOverlap"}
+{"Time":"2026-10-03T17:32:47.656188606Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestIndependentCacheMissesOverlap","Output":"=== RUN   TestIndependentCacheMissesOverlap\n"}
+{"Time":"2026-10-03T17:32:47.657090166Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestIndependentCacheMissesOverlap","Output":"--- PASS: TestIndependentCacheMissesOverlap (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.657818214Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestIndependentCacheMissesOverlap","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.65851006Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent"}
+{"Time":"2026-10-03T17:32:47.659169803Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent","Output":"=== RUN   TestConcurrentLimitsRemainIndependent\n"}
+{"Time":"2026-10-03T17:32:47.659833647Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[5_20]"}
+{"Time":"2026-10-03T17:32:47.66048199Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[5_20]","Output":"=== RUN   TestConcurrentLimitsRemainIndependent/[5_20]\n"}
+{"Time":"2026-10-03T17:32:47.662044594Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[5_20]","Output":"--- PASS: TestConcurrentLimitsRemainIndependent/[5_20] (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.662848847Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[5_20]","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.663570995Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[20_5]"}
+{"Time":"2026-10-03T17:32:47.664304043Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[20_5]","Output":"=== RUN   TestConcurrentLimitsRemainIndependent/[20_5]\n"}
+{"Time":"2026-10-03T17:32:47.668141997Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[20_5]","Output":"--- PASS: TestConcurrentLimitsRemainIndependent/[20_5] (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.672141762Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent/[20_5]","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.672957516Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent","Output":"--- PASS: TestConcurrentLimitsRemainIndependent (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.673606358Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentLimitsRemainIndependent","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.674466715Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed"}
+{"Time":"2026-10-03T17:32:47.675206264Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed","Output":"=== RUN   TestShortAndEmptySearchesAreCachedAndRefreshed\n"}
+{"Time":"2026-10-03T17:32:47.675877909Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/0"}
+{"Time":"2026-10-03T17:32:47.676617258Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/0","Output":"=== RUN   TestShortAndEmptySearchesAreCachedAndRefreshed/0\n"}
+{"Time":"2026-10-03T17:32:47.677418511Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/0","Output":"--- PASS: TestShortAndEmptySearchesAreCachedAndRefreshed/0 (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.677977148Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/0","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.67862399Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/3"}
+{"Time":"2026-10-03T17:32:47.679252232Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/3","Output":"=== RUN   TestShortAndEmptySearchesAreCachedAndRefreshed/3\n"}
+{"Time":"2026-10-03T17:32:47.679880473Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/3","Output":"--- PASS: TestShortAndEmptySearchesAreCachedAndRefreshed/3 (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.680476913Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed/3","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.681160758Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed","Output":"--- PASS: TestShortAndEmptySearchesAreCachedAndRefreshed (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.681778699Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestShortAndEmptySearchesAreCachedAndRefreshed","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.682443343Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFailedFetchCanBeRetried"}
+{"Time":"2026-10-03T17:32:47.683114487Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFailedFetchCanBeRetried","Output":"=== RUN   TestFailedFetchCanBeRetried\n"}
+{"Time":"2026-10-03T17:32:47.683715527Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFailedFetchCanBeRetried","Output":"--- PASS: TestFailedFetchCanBeRetried (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.684495279Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFailedFetchCanBeRetried","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.685142122Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay"}
+{"Time":"2026-10-03T17:32:47.685773363Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay","Output":"=== RUN   TestCacheDateWindowIncludesTodayAndPreviousDay\n"}
+{"Time":"2026-10-03T17:32:47.686555315Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_1"}
+{"Time":"2026-10-03T17:32:47.687354168Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_1","Output":"=== RUN   TestCacheDateWindowIncludesTodayAndPreviousDay/days_1\n"}
+{"Time":"2026-10-03T17:32:47.687923706Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_1","Output":"--- PASS: TestCacheDateWindowIncludesTodayAndPreviousDay/days_1 (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.688573949Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_1","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.689295696Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_2"}
+{"Time":"2026-10-03T17:32:47.689882435Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_2","Output":"=== RUN   TestCacheDateWindowIncludesTodayAndPreviousDay/days_2\n"}
+{"Time":"2026-10-03T17:32:47.690391869Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_2","Output":"--- PASS: TestCacheDateWindowIncludesTodayAndPreviousDay/days_2 (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.690899202Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay/days_2","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.691421737Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay","Output":"--- PASS: TestCacheDateWindowIncludesTodayAndPreviousDay (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.692397901Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestCacheDateWindowIncludesTodayAndPreviousDay","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.693147151Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestMergeArticlesDeduplicatesByURLAndContent"}
+{"Time":"2026-10-03T17:32:47.693690987Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestMergeArticlesDeduplicatesByURLAndContent","Output":"=== RUN   TestMergeArticlesDeduplicatesByURLAndContent\n"}
+{"Time":"2026-10-03T17:32:47.69433643Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestMergeArticlesDeduplicatesByURLAndContent","Output":"--- PASS: TestMergeArticlesDeduplicatesByURLAndContent (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.694876565Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestMergeArticlesDeduplicatesByURLAndContent","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.695391399Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit"}
+{"Time":"2026-10-03T17:32:47.695841629Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit","Output":"=== RUN   TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit\n"}
+{"Time":"2026-10-03T17:32:47.696547676Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit","Output":"--- PASS: TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.697121014Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesDeduplicatesAndAppliesResultLimit","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.697588745Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestExpandedLimitFetchesAdditionalPages"}
+{"Time":"2026-10-03T17:32:47.698167383Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestExpandedLimitFetchesAdditionalPages","Output":"=== RUN   TestExpandedLimitFetchesAdditionalPages\n"}
+{"Time":"2026-10-03T17:32:47.713708511Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestExpandedLimitFetchesAdditionalPages","Output":"--- PASS: TestExpandedLimitFetchesAdditionalPages (0.02s)\n"}
+{"Time":"2026-10-03T17:32:47.714517365Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestExpandedLimitFetchesAdditionalPages","Elapsed":0.02}
+{"Time":"2026-10-03T17:32:47.715089402Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestRepeatedUpstreamPageStopsWithError"}
+{"Time":"2026-10-03T17:32:47.71565314Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestRepeatedUpstreamPageStopsWithError","Output":"=== RUN   TestRepeatedUpstreamPageStopsWithError\n"}
+{"Time":"2026-10-03T17:32:47.720184439Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestRepeatedUpstreamPageStopsWithError","Output":"--- PASS: TestRepeatedUpstreamPageStopsWithError (0.01s)\n"}
+{"Time":"2026-10-03T17:32:47.7210956Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestRepeatedUpstreamPageStopsWithError","Elapsed":0.01}
+{"Time":"2026-10-03T17:32:47.721622135Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestSQLitePersistenceIsolationAndRollback"}
+{"Time":"2026-10-03T17:32:47.722515594Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLitePersistenceIsolationAndRollback","Output":"=== RUN   TestSQLitePersistenceIsolationAndRollback\n"}
+{"Time":"2026-10-03T17:32:47.756739058Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLitePersistenceIsolationAndRollback","Output":"--- PASS: TestSQLitePersistenceIsolationAndRollback (0.04s)\n"}
+{"Time":"2026-10-03T17:32:47.757357798Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestSQLitePersistenceIsolationAndRollback","Elapsed":0.04}
+{"Time":"2026-10-03T17:32:47.757747824Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteBusyDeadlineAndSchemaVersion"}
+{"Time":"2026-10-03T17:32:47.758216055Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteBusyDeadlineAndSchemaVersion","Output":"=== RUN   TestSQLiteBusyDeadlineAndSchemaVersion\n"}
+{"Time":"2026-10-03T17:32:47.766358094Z","Action":"output","Package":"go-mongo-docker/tests","Test":"TestSQLiteBackedApplicationFlow","Output":"--- PASS: TestSQLiteBackedApplicationFlow (0.13s)\n"}
+{"Time":"2026-10-03T17:32:47.766891029Z","Action":"pass","Package":"go-mongo-docker/tests","Test":"TestSQLiteBackedApplicationFlow","Elapsed":0.13}
+{"Time":"2026-10-03T17:32:47.767309157Z","Action":"output","Package":"go-mongo-docker/tests","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:47.891710186Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteBusyDeadlineAndSchemaVersion","Output":"--- PASS: TestSQLiteBusyDeadlineAndSchemaVersion (0.13s)\n"}
+{"Time":"2026-10-03T17:32:47.892601545Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteBusyDeadlineAndSchemaVersion","Elapsed":0.13}
+{"Time":"2026-10-03T17:32:47.893312692Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteContentKeyTimestampNormalization"}
+{"Time":"2026-10-03T17:32:47.893935733Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteContentKeyTimestampNormalization","Output":"=== RUN   TestSQLiteContentKeyTimestampNormalization\n"}
+{"Time":"2026-10-03T17:32:47.894832292Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteContentKeyTimestampNormalization","Output":"--- PASS: TestSQLiteContentKeyTimestampNormalization (0.00s)\n"}
+{"Time":"2026-10-03T17:32:47.895450133Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteContentKeyTimestampNormalization","Elapsed":0}
+{"Time":"2026-10-03T17:32:47.896249786Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses"}
+{"Time":"2026-10-03T17:32:47.897021737Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"=== RUN   TestSQLiteProcesses\n"}
+{"Time":"2026-10-03T17:32:47.935688895Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:47.93939084Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:47.941805799Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:47.947202656Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:47.960602343Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:47.963800154Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:48.769390876Z","Action":"output","Package":"go-mongo-docker/tests","Output":"ok  \tgo-mongo-docker/tests\t1.153s\n"}
+{"Time":"2026-10-03T17:32:48.770195766Z","Action":"pass","Package":"go-mongo-docker/tests","Elapsed":1.154}
+{"Time":"2026-10-03T17:32:48.989470676Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Output":"--- PASS: TestSQLiteProcesses (1.10s)\n"}
+{"Time":"2026-10-03T17:32:48.99030377Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestSQLiteProcesses","Elapsed":1.1}
+{"Time":"2026-10-03T17:32:48.99093334Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestLegacyMongoConfiguration"}
+{"Time":"2026-10-03T17:32:48.991516606Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestLegacyMongoConfiguration","Output":"=== RUN   TestLegacyMongoConfiguration\n"}
+{"Time":"2026-10-03T17:32:48.992238887Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestLegacyMongoConfiguration","Output":"--- PASS: TestLegacyMongoConfiguration (0.00s)\n"}
+{"Time":"2026-10-03T17:32:48.992782948Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestLegacyMongoConfiguration","Elapsed":0}
+{"Time":"2026-10-03T17:32:48.993369614Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestLoadEnvFileReadsValues"}
+{"Time":"2026-10-03T17:32:48.993906374Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestLoadEnvFileReadsValues","Output":"=== RUN   TestLoadEnvFileReadsValues\n"}
+{"Time":"2026-10-03T17:32:48.994393529Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestLoadEnvFileReadsValues","Output":"--- PASS: TestLoadEnvFileReadsValues (0.00s)\n"}
+{"Time":"2026-10-03T17:32:48.994833178Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestLoadEnvFileReadsValues","Elapsed":0}
+{"Time":"2026-10-03T17:32:48.995433145Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesRequiresAPIKey"}
+{"Time":"2026-10-03T17:32:48.996004709Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesRequiresAPIKey","Output":"=== RUN   TestFetchArticlesRequiresAPIKey\n"}
+{"Time":"2026-10-03T17:32:48.996820101Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesRequiresAPIKey","Output":"--- PASS: TestFetchArticlesRequiresAPIKey (0.00s)\n"}
+{"Time":"2026-10-03T17:32:48.997481375Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesRequiresAPIKey","Elapsed":0}
+{"Time":"2026-10-03T17:32:48.998034537Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesParsesResponseAndOptionalFields"}
+{"Time":"2026-10-03T17:32:48.998550795Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesParsesResponseAndOptionalFields","Output":"=== RUN   TestFetchArticlesParsesResponseAndOptionalFields\n"}
+{"Time":"2026-10-03T17:32:48.999111558Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesParsesResponseAndOptionalFields","Output":"--- PASS: TestFetchArticlesParsesResponseAndOptionalFields (0.00s)\n"}
+{"Time":"2026-10-03T17:32:48.999740829Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesParsesResponseAndOptionalFields","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.000330295Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors"}
+{"Time":"2026-10-03T17:32:49.00073334Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors","Output":"=== RUN   TestFetchArticlesReportsAPIAndDecodeErrors\n"}
+{"Time":"2026-10-03T17:32:49.001243897Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/API_error_response"}
+{"Time":"2026-10-03T17:32:49.002001182Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/API_error_response","Output":"=== RUN   TestFetchArticlesReportsAPIAndDecodeErrors/API_error_response\n"}
+{"Time":"2026-10-03T17:32:49.002571947Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/API_error_response","Output":"--- PASS: TestFetchArticlesReportsAPIAndDecodeErrors/API_error_response (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.003157912Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/API_error_response","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.003925398Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/HTTP_error_without_API_message"}
+{"Time":"2026-10-03T17:32:49.008176276Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/HTTP_error_without_API_message","Output":"=== RUN   TestFetchArticlesReportsAPIAndDecodeErrors/HTTP_error_without_API_message\n"}
+{"Time":"2026-10-03T17:32:49.008711736Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/HTTP_error_without_API_message","Output":"--- PASS: TestFetchArticlesReportsAPIAndDecodeErrors/HTTP_error_without_API_message (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.009205791Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/HTTP_error_without_API_message","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.009696146Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/malformed_JSON"}
+{"Time":"2026-10-03T17:32:49.010187701Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/malformed_JSON","Output":"=== RUN   TestFetchArticlesReportsAPIAndDecodeErrors/malformed_JSON\n"}
+{"Time":"2026-10-03T17:32:49.010680457Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/malformed_JSON","Output":"--- PASS: TestFetchArticlesReportsAPIAndDecodeErrors/malformed_JSON (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.01124652Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/malformed_JSON","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.011816384Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/unexpected_API_status"}
+{"Time":"2026-10-03T17:32:49.012418452Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/unexpected_API_status","Output":"=== RUN   TestFetchArticlesReportsAPIAndDecodeErrors/unexpected_API_status\n"}
+{"Time":"2026-10-03T17:32:49.013401962Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/unexpected_API_status","Output":"--- PASS: TestFetchArticlesReportsAPIAndDecodeErrors/unexpected_API_status (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.013897218Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors/unexpected_API_status","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.014405875Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors","Output":"--- PASS: TestFetchArticlesReportsAPIAndDecodeErrors (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.014878628Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchArticlesReportsAPIAndDecodeErrors","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.015437891Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestSaveArticlesWritesJSONFiles"}
+{"Time":"2026-10-03T17:32:49.016012455Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSaveArticlesWritesJSONFiles","Output":"=== RUN   TestSaveArticlesWritesJSONFiles\n"}
+{"Time":"2026-10-03T17:32:49.016564417Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestSaveArticlesWritesJSONFiles","Output":"--- PASS: TestSaveArticlesWritesJSONFiles (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.017018668Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestSaveArticlesWritesJSONFiles","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.017637437Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesCoalescesConcurrentMisses"}
+{"Time":"2026-10-03T17:32:49.018257307Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesCoalescesConcurrentMisses","Output":"=== RUN   TestFetchCachedArticlesCoalescesConcurrentMisses\n"}
+{"Time":"2026-10-03T17:32:49.018760263Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesCoalescesConcurrentMisses","Output":"--- PASS: TestFetchCachedArticlesCoalescesConcurrentMisses (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.019255319Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesCoalescesConcurrentMisses","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.019880889Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesReportsAPIThenCache"}
+{"Time":"2026-10-03T17:32:49.020456554Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesReportsAPIThenCache","Output":"=== RUN   TestFetchCachedArticlesReportsAPIThenCache\n"}
+{"Time":"2026-10-03T17:32:49.020964311Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesReportsAPIThenCache","Output":"--- PASS: TestFetchCachedArticlesReportsAPIThenCache (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.02149177Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesReportsAPIThenCache","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.022010128Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate"}
+{"Time":"2026-10-03T17:32:49.022492382Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate","Output":"=== RUN   TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate\n"}
+{"Time":"2026-10-03T17:32:49.022975737Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate","Output":"--- PASS: TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.023457291Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFetchCachedArticlesKeepsDifferentDateWindowsSeparate","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.023938245Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestProcessCachedRequestsAcceptsBatchRequests"}
+{"Time":"2026-10-03T17:32:49.024462403Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestProcessCachedRequestsAcceptsBatchRequests","Output":"=== RUN   TestProcessCachedRequestsAcceptsBatchRequests\n"}
+{"Time":"2026-10-03T17:32:49.024982362Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestProcessCachedRequestsAcceptsBatchRequests","Output":"--- PASS: TestProcessCachedRequestsAcceptsBatchRequests (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.025541825Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestProcessCachedRequestsAcceptsBatchRequests","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.026091186Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestProcessRequestsReturnsResultsAndErrors"}
+{"Time":"2026-10-03T17:32:49.026679652Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestProcessRequestsReturnsResultsAndErrors","Output":"=== RUN   TestProcessRequestsReturnsResultsAndErrors\n"}
+{"Time":"2026-10-03T17:32:49.027209912Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestProcessRequestsReturnsResultsAndErrors","Output":"--- PASS: TestProcessRequestsReturnsResultsAndErrors (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.028062107Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestProcessRequestsReturnsResultsAndErrors","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.028691278Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentRequestsFixture"}
+{"Time":"2026-10-03T17:32:49.029290845Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentRequestsFixture","Output":"=== RUN   TestConcurrentRequestsFixture\n"}
+{"Time":"2026-10-03T17:32:49.029895613Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentRequestsFixture","Output":"--- PASS: TestConcurrentRequestsFixture (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.030441974Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestConcurrentRequestsFixture","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.030943731Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestNormalizeRequestTimeoutsAppliesDefaults"}
+{"Time":"2026-10-03T17:32:49.031531197Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestNormalizeRequestTimeoutsAppliesDefaults","Output":"=== RUN   TestNormalizeRequestTimeoutsAppliesDefaults\n"}
+{"Time":"2026-10-03T17:32:49.032168068Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestNormalizeRequestTimeoutsAppliesDefaults","Output":"--- PASS: TestNormalizeRequestTimeoutsAppliesDefaults (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.032643922Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestNormalizeRequestTimeoutsAppliesDefaults","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.03316848Z","Action":"run","Package":"go-mongo-docker/newsapi","Test":"TestFormatTimeoutErrorIsUserFriendly"}
+{"Time":"2026-10-03T17:32:49.033802252Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFormatTimeoutErrorIsUserFriendly","Output":"=== RUN   TestFormatTimeoutErrorIsUserFriendly\n"}
+{"Time":"2026-10-03T17:32:49.034419621Z","Action":"output","Package":"go-mongo-docker/newsapi","Test":"TestFormatTimeoutErrorIsUserFriendly","Output":"--- PASS: TestFormatTimeoutErrorIsUserFriendly (0.00s)\n"}
+{"Time":"2026-10-03T17:32:49.034933279Z","Action":"pass","Package":"go-mongo-docker/newsapi","Test":"TestFormatTimeoutErrorIsUserFriendly","Elapsed":0}
+{"Time":"2026-10-03T17:32:49.035461938Z","Action":"output","Package":"go-mongo-docker/newsapi","Output":"PASS\n"}
+{"Time":"2026-10-03T17:32:50.023329509Z","Action":"output","Package":"go-mongo-docker/newsapi","Output":"ok  \tgo-mongo-docker/newsapi\t2.407s\n"}
+{"Time":"2026-10-03T17:32:50.025557059Z","Action":"pass","Package":"go-mongo-docker/newsapi","Elapsed":2.41}
+{"Time":"2026-10-03T17:33:55.18746706Z","Action":"output","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidDays","Output":"--- PASS: TestCLIRejectsInvalidDays (67.99s)\n"}
+{"Time":"2026-10-03T17:33:55.188339655Z","Action":"pass","Package":"go-mongo-docker","Test":"TestCLIRejectsInvalidDays","Elapsed":67.99}
+{"Time":"2026-10-03T17:33:55.18911984Z","Action":"output","Package":"go-mongo-docker","Output":"PASS\n"}
+{"Time":"2026-10-03T17:33:56.194728382Z","Action":"output","Package":"go-mongo-docker","Output":"ok  \tgo-mongo-docker\t69.055s\n"}
+{"Time":"2026-10-03T17:33:56.197151846Z","Action":"pass","Package":"go-mongo-docker","Elapsed":69.059}

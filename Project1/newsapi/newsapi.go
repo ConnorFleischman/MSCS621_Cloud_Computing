@@ -22,27 +22,29 @@ type Article = models.Article
 
 // Request defines the query parameters used for a NewsAPI call.
 type Request struct {
-	APIKey       string
-	Topic        string
-	Country      string
-	Days         int
-	Limit        int
-	Page         int
-	Timeout      time.Duration
-	MongoTimeout time.Duration
+	// HTTPClient permits isolated transports without changing http.DefaultTransport.
+	HTTPClient *http.Client
+	APIKey     string
+	Topic      string
+	Country    string
+	Days       int
+	Limit      int
+	Page       int
+	Timeout    time.Duration
+	DBTimeout  time.Duration
 }
 
 const (
-	defaultAPITimeout   = 15 * time.Second
-	defaultMongoTimeout = 10 * time.Second
+	defaultAPITimeout = 15 * time.Second
+	defaultDBTimeout  = 10 * time.Second
 )
 
 func NormalizeRequestTimeouts(req Request) Request {
 	if req.Timeout <= 0 {
 		req.Timeout = defaultAPITimeout
 	}
-	if req.MongoTimeout <= 0 {
-		req.MongoTimeout = defaultMongoTimeout
+	if req.DBTimeout <= 0 {
+		req.DBTimeout = defaultDBTimeout
 	}
 	return req
 }
@@ -101,6 +103,9 @@ func FetchArticles(req Request) ([]Article, error) {
 	defer cancel()
 
 	client := &http.Client{Timeout: req.Timeout}
+	if req.HTTPClient != nil {
+		client = req.HTTPClient
+	}
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("build request failed: %w", err)
