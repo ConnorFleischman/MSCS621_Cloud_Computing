@@ -18,7 +18,7 @@ Repeated news searches can incur unnecessary network requests when users request
 
 This project implements a command-line interface (CLI) that combines NewsAPI retrieval with persistent caching, concurrent request processing, and Docker-based execution. NewsAPI provides an HTTP application programming interface (API) for searching and retrieving news articles \[1\]. The application accepts individual searches or a batch of requests and identifies whether each result originated from the cache or the external service.
 
-The project evaluates how cache reuse and concurrent processing affect latency, throughput, and external request counts in a controlled local environment. Its contribution is the integration and evaluation of established technologies for a cloud-computing application. The implementation also examines a deployment tradeoff: replacing a separate database service with embedded SQLite to simplify the runtime and reduce its storage footprint.
+The project evaluates how cache reuse and concurrent processing affect latency, throughput, and external request counts in a controlled local environment. Its contribution is the integration and evaluation of established technologies for a cloud-computing application. The implementation also examines a deployment tradeoff: replacing a separate database service with embedded SQLite to simplify the runtime and reduce its storage footprint. Unlike the large-scale service setting discussed in Dean and Barroso's work, this project focuses on a single-host CLI. The application-specific contribution is the integration of coverage-aware news caching, batch request processing, and a measured embedded SQLite deployment.
 
 # II. SYSTEM DESIGN
 
@@ -26,11 +26,11 @@ The project evaluates how cache reuse and concurrent processing affect latency, 
 
 The implementation separates command processing, data representation, retrieval, cache policy, and persistence. The entry point, main.go, validates CLI arguments and invokes the request pipeline. The file models/news.go defines article and response structures. The NewsAPI client and request normalization reside in newsapi/newsapi.go, while newsapi/cache.go implements coverage checks, request fan-out, deduplication, and result merging. The persistence layer in newsapi/sqlite.go initializes the database schema and writes article and coverage records within transactions.
 
-The CLI accepts a topic through \-topic or its legacy alias, \-q. The \-days argument specifies the lookback window, and \-articles sets the maximum number of results. A \-country option is also exposed by the application. Batch execution reads requests from a JSON file supplied through \-batch. Output includes article titles, sources, authors, publication dates, descriptions, URLs, and the retrieval source. When the available result count is below the requested limit, the application reports the difference.
+The CLI accepts a topic through \-topic or its legacy alias, \-q. The \-days argument specifies the lookback window (-days 2 means today and yesterday using UTC calendar dates), and \-articles sets the maximum number of results. Topic searches use the /v2/everything endpoint, and the code removes the country parameter for that endpoint, so \-country does not filter topic searches, matching the endpoint's documented parameters. Batch execution reads requests from a JSON file supplied through \-batch. Output includes article titles, sources, authors, publication dates, descriptions, URLs, and the retrieval source. When the available result count is below the requested limit, the application reports the difference.
 
 ## *B. Cache Policy and Persistence*
 
-Cache lookup accounts for the normalized topic, country, and requested date range. A 15-minute lifetime limits the reuse of stale results. The application checks stored coverage and available article counts before returning cached data. If the requested time window or result count is insufficiently covered, the application retrieves additional data and merges the results. Article URLs serve as deduplication identifiers, with a content-derived fallback when a URL is unavailable.
+Cache lookup accounts for the normalized topic, country, and requested date range. A 15-minute lifetime limits the reuse of stale results. The application checks stored coverage and available article counts before returning cached data. If the requested time window or result count is insufficiently covered, the application retrieves additional data and merges the results. It should be noted that increasing the article limit does not always trigger another API call because a prior fetch may already have cached enough articles since retrieval uses pages of 100\. Article URLs serve as deduplication identifiers, with a content-derived fallback when a URL is unavailable.
 
 The articles table stores topic and country information, article identity, publication time, and complete article JSON. The coverage table records the covered date range, fetch time, requested limit, and an exhausted flag. Separating articles from coverage metadata allows the application to track the scope of a previous retrieval alongside its stored results. Persistent storage is enabled through DATABASE\_PATH; the container deployment uses /data/news.db on a named volume mounted at /data.
 
@@ -50,9 +50,9 @@ The final implementation replaces the earlier MongoDB-oriented architecture with
 
 ## *A. Functional and Concurrency Tests*
 
-The test suite exercises cache misses, cache hits, invalid batch input, concurrent requests, output formatting, and SQLite persistence. A cache-miss fixture checks that an upstream request occurs and that its results are stored. A cache-hit fixture checks result reuse. Invalid-batch tests check that validation fails before retrieval. Concurrent-request fixtures examine shared cache behavior, and golden-output tests compare CLI output with expected text. SQLite tests exercise repeated access, overlapping operations, and failed writes.
+The test suite exercises cache misses, cache hits, invalid batch input, concurrent requests, output formatting, and SQLite persistence. A cache-miss fixture checks that an upstream request occurs and that its results are stored. A cache-hit fixture checks result reuse. Invalid-batch tests check that validation fails before retrieval. TestConcurrentRequestsFixture verifies overlapping request execution and expected results using a mock fetch function; cache concurrency tests verify shared-cache behavior. Golden-output tests compare CLI output with expected text. SQLite tests exercise repeated access, overlapping operations, and failed writes.
 
-The project identifies metrics/test\_results.jsonl and metrics/race\_results.jsonl as the stored outputs of the test and race-detector runs. The reported runs completed without detected data races. This finding applies to the executed tests: Go’s race detector observes runtime accesses and cannot establish the absence of races in unexecuted paths \[7\]. Build and test commands are provided in Appendix A.
+The project identifies metrics/test\_results.jsonl and metrics/race\_results.jsonl as the stored outputs of the test and race-detector runs. The recorded results show 57 named tests passed in the normal run and 57 in the race-detector run, with zero failures or skipped named tests. This finding applies to the executed tests: Go’s race detector observes runtime accesses and cannot establish the absence of races in unexecuted paths \[7\]. Build and test commands are provided in Appendix A.
 
 ## *B. Benchmark Configuration*
 
@@ -77,11 +77,11 @@ The measurement procedure specifies one warm-up run followed by five measured re
 
 All five displayed scenarios recorded zero errors. At concurrency one, the warm-cache median latency was 0.926 ms, compared with 62.647 ms for a cache miss. The ratio of these medians is approximately 67.7. This comparison reflects the avoided mock-service delay and associated retrieval and persistence work; it is not an estimate of live-service acceleration.
 
-Distinct cold searches at concurrency 20 achieved 118.190 searches/s, compared with 15.451 searches/s for the single-request cache-miss scenario. The measurements are consistent with overlapping retrieval work. For identical cold searches, the table records five upstream calls for 100 completed searches, demonstrating substantial reuse within the measured workload. The table alone does not establish the cache-reset schedule or how those calls were distributed across repetitions.
+Distinct cold searches at concurrency 20 achieved 118.190 searches/s, compared with 15.451 searches/s for the single-request cache-miss scenario. The measurements are consistent with overlapping retrieval work. For identical cold searches, the table records five upstream calls for 100 completed searches, demonstrating substantial reuse within the measured workload. The harness uses new topic names for each cold wave. At concurrency 20, identical searches produce one API call per wave across five measured repetitions, explaining the five API calls.
 
 Increasing warm-cache concurrency from one to 20 left throughput approximately unchanged at 1044 searches/s, while median latency increased from 0.926 to 12.259 ms. Thus, this workload did not exhibit proportional throughput scaling with concurrency. The measurements do not isolate whether database access, locking, scheduling, or another component imposed the limit.
 
-The full benchmark summary reports 1,600 measured operations without errors, whereas the five rows in Table I account for 500 completed searches. The relationship between the displayed rows, repetitions, and full operation total requires reconciliation with the raw benchmark records. Accordingly, the table should be treated as a partial summary rather than a complete accounting of the run. Although the harness records p95 and p99 latency, those values are not included here. Tail latency warrants separate analysis because median latency alone can obscure slow requests, a concern discussed by Dean and Barroso \[8\].
+The full benchmark summary reports 1,600 measured operations without errors (16 scenario and concurrency combinations with 100 measured searches each). Table I acts as a selected summary showing 500 completed searches. Although the harness records p95 and p99 latency, those values are not included here. Tail latency warrants separate analysis because median latency alone can obscure slow requests, a concern discussed by Dean and Barroso \[8\].
 
 ## *B. Runtime Artifact Size*
 
@@ -89,12 +89,12 @@ The full benchmark summary reports 1,600 measured operations without errors, whe
 **MEASURED SQLITE DEPLOYMENT ARTIFACTS**
 
 | Artifact | Size (bytes) |
-| :---- | :---: |
+| ----- | :---: |
 | Executable after UPX compression | 2,470,712 |
 | Runtime image in local Docker image store | 5,277,856 |
-| Docker image export archive | 2,595,328 |
+| Docker image export archive (metrics artifact) Submitted Docker archive (project1-go-app.tar) 2,588,672  | 2,595,328 |
 
-The runtime image occupied approximately 5.28 MB using decimal units. Executable size, local image-store size, and export-archive size measure different artifacts and should not be compared as interchangeable values. These measurements characterize deployment storage rather than runtime memory use. No startup-time measurement was reported. A controlled comparison with the former Go-and-MongoDB deployment could be useful to quantify the effect of the migration on total image storage, startup latency, or memory consumption.
+The runtime image occupied approximately 5.28 MB using decimal units. Executable size, local image-store size, and export-archive size measure different artifacts and should not be compared as interchangeable values. These measurements characterize deployment storage rather than runtime memory use. The available measurements in runtime.json show Docker cache-hit invocation times with a median of 629.882 ms (including container creation/removal, startup, lookup, and output). Packed executable process times were 0.28–0.29 seconds (excluding Docker startup), with a peak RSS of 7,888–8,016 KiB. These are complete invocation measurements rather than isolated startup times. The submitted archive project1-go-app.tar contains project1-go-app:latest and is 2,588,672 bytes. The 2,595,328-byte export measurement belongs to the earlier project1-metrics:latest artifact and is not the submitted archive's size. A controlled comparison with the former Go-and-MongoDB deployment could be useful to quantify the effect of the migration on total image storage, startup latency, or memory consumption.
 
 # V. LIMITATIONS AND FUTURE WORK
 
@@ -102,7 +102,7 @@ The evaluation uses a deterministic mock service on one host. It excludes live-s
 
 SQLite simplifies deployment but constrains the architecture to local persistent storage in the configuration evaluated. WAL relies on shared-memory coordination and does not support clients on different machines sharing a database over a network filesystem \[4\]. Concurrent writes remain serialized. In addition, per-query locking coordinates retrievals only within an application process; multiple container invocations may still issue redundant upstream requests.
 
-Further evaluation should reconcile the benchmark sample counts, document cache reset behavior between repetitions, and report p95 and p99 latency alongside the median. CPU and memory measurements, startup timing, and a comparable MongoDB baseline would support a broader deployment comparison. Testing separate container processes against the same local database would also clarify the limits of cross-process cache reuse and write contention.
+Further evaluation should reconcile the benchmark sample counts, document cache reset behavior between repetitions, and report p95 and p99 latency alongside the median. CPU and memory measurements, startup timing, and a comparable MongoDB baseline would support a broader deployment comparison. Separate-process database testing already exists (TestSQLiteProcesses checks six concurrent writer processes, duplicate prevention, interrupted-transaction recovery, and integrity). Container-level concurrent load testing remains a valid future task.
 
 # VI. CONCLUSION
 
@@ -110,7 +110,7 @@ The project integrates Go concurrency, NewsAPI retrieval, SQLite persistence, an
 
 # AI USE STATEMENT
 
-The project maintains development prompt logs in Prompts/connor\_prompts.md and Prompts/das\_prompts.md. Furthermore, the development record mentions the use of Gemini 3.1 Pro and GPT-6 Astra/Luna. ChatGPT (Codex) was also used on 4 October, 2026, to convert a bullet-style report into this formal technical prose, organize the report using IEEE-style sections and numbered references, check public technical documentation, qualify unsupported claims, and format the document for refinement and validation in Google Docs. 
+The project maintains development prompt logs in prompts/connor\_prompts.md and prompts/das\_prompts.md. Connor's five logged prompts have no associated AI names or versions. Furthermore, the development record mentions the use of Gemini 3.1 Pro, GPT-6 Astra/Luna, and GPT-6.1 Sol. An AI model (with exact prompts and model version unrecorded) was also used on 4 October, 2026, to convert a bullet-style report into this formal technical prose, organize the report using IEEE-style sections and numbered references, check public technical documentation, qualify unsupported claims, and format the document for refinement and validation in Google Docs.
 
 # REFERENCES
 
@@ -132,7 +132,15 @@ The project maintains development prompt logs in Prompts/connor\_prompts.md and 
 
 # APPENDIX A BUILD AND EXECUTION
 
-Native builds require Go 1.25.0 or later and a CGO-compatible C compiler. Docker provides the reference build workflow. Configure NewsAPI credentials using the repository instructions before performing live searches. Persistent database operation requires DATABASE\_PATH; the container configuration uses /data/news.db. Run the following commands from the repository root.
+Native builds require Go 1.25.0 or later and a CGO-compatible C compiler. Docker provides the reference build workflow. Configure NewsAPI credentials using the repository instructions before performing live searches. Persistent database operation requires DATABASE\_PATH; the container configuration uses /data/[news.db](http://news.db). If using the github repository and not the direct project itself, navigate into the Project1 directory and configure the environment:
+
+cd Project1
+
+Then copy the .env.example to create the template for your own .env:
+
+Copy-Item .env.example .env
+
+Enter your NewsAPI key in .env. Run the following commands:
 
 ## *A. Build and Run*
 
@@ -140,7 +148,7 @@ docker compose \-p project1 build go-app
 
 docker compose \-p project1 run \--rm go-app \-topic "cloud computing" \-days 7 \-articles 5
 
-For batch execution, mount the example JSON input and pass its container path:
+For batch execution, mount the example JSON input and pass its container path. Label the multiline command as Bash, or use a single line for PowerShell since its \`\\\` continuation syntax does not work in PowerShell:
 
 docker compose \-p project1 run \--rm \\  
   \-v "./searches.example.json:/app/searches.example.json:ro" \\  
